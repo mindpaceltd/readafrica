@@ -45,6 +45,7 @@ export default function BookPage() {
 
         if (bookError || !bookData) {
             console.error("Error fetching book", bookError);
+            toast({ title: "Error", description: "Could not find the requested book.", variant: "destructive" });
             setIsLoading(false);
             return;
         }
@@ -84,7 +85,7 @@ export default function BookPage() {
     }
     
     fetchBookAndPurchaseStatus();
-  }, [params.id, supabase]);
+  }, [params.id, supabase, toast]);
 
   const handlePurchase = async () => {
     if(!book) return;
@@ -102,9 +103,10 @@ export default function BookPage() {
         description: "Please check your phone to complete the M-Pesa transaction.",
     });
 
+    // In a real app, a webhook from M-Pesa would trigger this logic.
+    // For this demo, we simulate a successful payment after a delay.
     setTimeout(async () => {
-      // In a real app, a webhook from M-Pesa would trigger this logic.
-      // Here, we simulate a successful payment.
+      
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
@@ -154,9 +156,9 @@ export default function BookPage() {
 
   if (!book) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
         <h2 className="text-2xl font-headline mb-4">Book Not Found</h2>
-        <p className="text-muted-foreground mb-6">The book you are looking for does not exist.</p>
+        <p className="text-muted-foreground mb-6">The book you are looking for does not exist or could not be loaded.</p>
         <Button asChild>
           <Link href="/books">
             <ArrowLeft className="mr-2" />
@@ -212,8 +214,8 @@ export default function BookPage() {
           <div className="md:col-span-2 space-y-6">
             <div id="preview">
                 <h2 className="text-xl md:text-2xl font-headline text-accent flex items-center gap-2"><Unlock/> Book Preview</h2>
-                <div className="prose dark:prose-invert mt-4 text-base md:text-lg leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner">
-                    <p>{book.preview_content}</p>
+                <div className="prose dark:prose-invert mt-4 text-base leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner">
+                    <p>{book.preview_content || "No preview available for this book."}</p>
                 </div>
             </div>
 
@@ -236,7 +238,7 @@ export default function BookPage() {
                             title={`Full text of ${book.title}`}
                         />
                     ) : (
-                         <div className="absolute inset-0 flex items-center justify-center z-10 rounded-lg">
+                         <div className="absolute inset-0 flex items-center justify-center z-10 rounded-lg bg-card">
                            <div className="text-center p-4">
                                 <p className="font-bold text-sm md:text-base text-muted-foreground">Full content not available yet.</p>
                            </div>
@@ -254,28 +256,27 @@ export default function BookPage() {
 function BookPageSkeleton() {
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 animate-pulse">
-            <Skeleton className="h-10 w-36 md:w-48 mb-8" />
+            <Skeleton className="h-10 w-36 mb-8" />
             <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-1 space-y-4">
                     <Skeleton className="aspect-[3/4] w-full" />
                     <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-20 w-full" />
                     <Skeleton className="h-8 w-1/2" />
                     <Skeleton className="h-12 w-full" />
                 </div>
-                <div className="md:col-span-2 space-y-6">
-                     <Skeleton className="h-8 w-32 md:w-40" />
-                     <div className="space-y-2">
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-5/6" />
+                <div className="md:col-span-2 space-y-8">
+                     <div>
+                        <Skeleton className="h-8 w-40 mb-4" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-5/6" />
+                        </div>
                      </div>
-                     <Skeleton className="h-8 w-32 md:w-40" />
-                     <div className="space-y-2">
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-4/6" />
+                     <div>
+                        <Skeleton className="h-8 w-40 mb-4" />
+                        <Skeleton className="aspect-[8.5/11] w-full" />
                      </div>
                 </div>
             </div>
