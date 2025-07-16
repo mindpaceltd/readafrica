@@ -29,7 +29,13 @@ const nextConfig: NextConfig = {
         hostname: 'images.saymedia-content.com',
         port: '',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

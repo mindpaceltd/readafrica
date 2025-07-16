@@ -130,7 +130,7 @@ export default async function HomePage() {
           <section className="bg-card rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
             <div className="md:w-1/2 relative min-h-[300px] md:min-h-0">
                 <Image 
-                    src="https://placehold.co/600x400.png"
+                    src="https://images.unsplash.com/photo-1698584200770-3838c3690a27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8ZmluYW5jZSUyMGZyZWVkb218ZW58MHx8fHwxNzUyNjgyNTM1fDA&ixlib=rb-4.1.0&q=80&w=1080"
                     alt="Featured Series"
                     fill
                     className="object-cover"
