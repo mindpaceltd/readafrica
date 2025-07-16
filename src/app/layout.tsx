@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { MobileNav, MobileNavContent } from "@/components/mobile-nav";
 import { Header } from "@/components/header";
+import { WhatsAppWidget } from "@/components/whatsapp-widget";
 
 export const metadata: Metadata = {
   title: "Prophetic Reads",
@@ -32,6 +33,7 @@ export default function RootLayout({
             </div>
             <MobileNavContent />
             <Toaster />
+            <WhatsAppWidget />
         </MobileNav>
       </body>
     </html>
