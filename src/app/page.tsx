@@ -149,7 +149,9 @@ export default async function HomePage() {
                     <span className="flex items-center gap-2"><Library /> 7-book series</span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <Button size="lg">Start Your Journey</Button>
+                    <Button size="lg" asChild>
+                        <Link href="/subscriptions">Start Your Journey</Link>
+                    </Button>
                     <Button size="lg" variant="outline">Preview Free Chapter</Button>
                 </div>
             </div>
