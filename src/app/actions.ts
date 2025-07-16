@@ -43,6 +43,11 @@ export async function submitVolunteerForm(formData: Omit<TablesInsert<'volunteer
 
 export async function duplicateBook(bookId: string) {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('You must be logged in to duplicate a book.');
+    }
 
     // 1. Fetch the original book data
     const { data: originalBook, error: fetchError } = await supabase
@@ -56,22 +61,27 @@ export async function duplicateBook(bookId: string) {
         throw new Error('Could not find the book to duplicate.');
     }
 
-    // 2. Prepare the new book data
-    const newBookData: TablesInsert<'books'> = {
-        ...originalBook,
-        id: undefined, // Let Supabase generate a new UUID
-        created_at: undefined, // Let Supabase set the timestamp
-        updated_at: undefined,
+    // 2. Prepare the new book data, ensuring all required fields are handled
+    const newBookData: Omit<TablesInsert<'books'>, 'id' | 'created_at' | 'updated_at'> = {
         title: `${originalBook.title} (Copy)`,
+        author: originalBook.author,
+        description: originalBook.description,
+        price: originalBook.price,
+        is_subscription: originalBook.is_subscription,
+        category_id: originalBook.category_id,
         status: 'draft', // Always create duplicates as drafts
         is_featured: false, // Don't feature duplicates by default
-        bestseller: false,
+        bestseller: false, // Don't feature duplicates by default
+        publisher_id: originalBook.publisher_id || user.id, // Assign to original publisher or current user
+        tags: originalBook.tags,
+        preview_content: originalBook.preview_content,
+        full_content_url: originalBook.full_content_url,
+        thumbnail_url: originalBook.thumbnail_url,
+        data_ai_hint: originalBook.data_ai_hint,
+        seo_title: originalBook.seo_title,
+        seo_description: originalBook.seo_description,
     };
-
-    // Remove the 'id' if you let the database handle it
-    delete (newBookData as any).id;
-
-
+    
     // 3. Insert the new book as a copy
     const { data: newBook, error: insertError } = await supabase
         .from('books')
