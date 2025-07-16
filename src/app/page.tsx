@@ -95,7 +95,7 @@ export default async function HomePage() {
            <section id="about-author" className="flex flex-col md:flex-row items-center gap-8 md:gap-12 bg-card p-8 rounded-lg shadow-md">
                 <div className="w-48 h-48 md:w-56 md:h-56 flex-shrink-0 relative">
                     <Image 
-                        src="https://placehold.co/400x400.png"
+                        src="https://images.saymedia-content.com/.image/t_share/MTg2MTkzMjg5NzY0OTM5NDU5/five-biblical-steps-to-controlling-anger.jpg"
                         alt="Dr. Climate Wiseman"
                         fill
                         className="rounded-full object-cover shadow-lg"
