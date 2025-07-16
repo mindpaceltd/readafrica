@@ -23,6 +23,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data: profile } = user 
+    ? await supabase.from('profiles').select('is_admin').eq('id', user.id).single() 
+    : { data: null };
+
   const { data: settings } = await supabase.from('app_settings').select('site_title, logo_url, footer_text').eq('id', 1).single();
 
   return (
@@ -35,9 +41,14 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased bg-background text-foreground" suppressHydrationWarning>
+      <body className="font-body antialiased bg-background text-foreground">
         <MobileNav>
-            <Header siteTitle={settings?.site_title || 'Prophetic Reads'} logoUrl={settings?.logo_url} />
+            <Header 
+              siteTitle={settings?.site_title} 
+              logoUrl={settings?.logo_url}
+              user={user}
+              isAdmin={profile?.is_admin || false}
+            />
             <div className="flex flex-col min-h-screen">
               <main className="flex-1">{children}</main>
                <footer
@@ -47,7 +58,12 @@ export default async function RootLayout({
                 <p>{settings?.footer_text || `© ${new Date().getFullYear()} Dr. Climate Wiseman. All rights reserved.`}</p>
               </footer>
             </div>
-            <MobileNavContent siteTitle={settings?.site_title || 'Prophetic Reads'} logoUrl={settings?.logo_url} />
+            <MobileNavContent 
+              siteTitle={settings?.site_title} 
+              logoUrl={settings?.logo_url}
+              user={user}
+              isAdmin={profile?.is_admin || false}
+            />
             <Toaster />
             <WhatsAppWidget />
         </MobileNav>

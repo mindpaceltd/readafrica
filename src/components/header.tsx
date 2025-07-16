@@ -12,62 +12,30 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-type Profile = {
-    is_admin: boolean;
-} | null;
-
 interface HeaderProps {
   siteTitle?: string | null;
   logoUrl?: string | null;
+  user: User | null;
+  isAdmin: boolean;
 }
 
-export function Header({ siteTitle, logoUrl }: HeaderProps) {
+export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll);
-
-    const supabase = createClient();
-    const checkUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-        if (user) {
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('is_admin')
-                .eq('id', user.id)
-                .single();
-            setProfile(profileData);
-        }
-    }
-    checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-             const { data: profileData } = await supabase
-                .from('profiles')
-                .select('is_admin')
-                .eq('id', session.user.id)
-                .single();
-            setProfile(profileData);
-        } else {
-            setProfile(null);
-        }
-        router.refresh();
-    });
+    
+    // Set initial state
+    handleScroll();
 
     return () => {
         window.removeEventListener('scroll', handleScroll);
-        authListener.subscription.unsubscribe();
     }
-  }, [router]);
+  }, []);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -76,7 +44,7 @@ export function Header({ siteTitle, logoUrl }: HeaderProps) {
     router.refresh();
   };
 
-  const dashboardHref = profile?.is_admin ? '/admin' : '/my-books';
+  const dashboardHref = isAdmin ? '/admin' : '/my-books';
 
   return (
     <header className={cn(
@@ -109,8 +77,8 @@ export function Header({ siteTitle, logoUrl }: HeaderProps) {
                 <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
-           <Button className="text-primary-foreground bg-primary hover:bg-primary/90" asChild={!user} onClick={user ? handleLogout : undefined}>
-             {user ? <span>Logout</span> : <Link href="/login">Login</Link>}
+           <Button className="text-primary-foreground bg-primary hover:bg-primary/90" onClick={user ? handleLogout : () => router.push('/login')}>
+             {user ? <span>Logout</span> : <span>Login</span>}
            </Button>
         </div>
         <div className="md:hidden">

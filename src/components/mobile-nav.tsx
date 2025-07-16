@@ -17,11 +17,6 @@ import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-
-type Profile = {
-    is_admin: boolean;
-} | null;
-
 const MobileNavContext = React.createContext<{
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -49,44 +44,13 @@ export function MobileNavTrigger({ children }: { children: React.ReactNode }) {
 interface MobileNavContentProps {
   siteTitle?: string | null;
   logoUrl?: string | null;
+  user: User | null;
+  isAdmin: boolean;
 }
 
-export function MobileNavContent({ siteTitle, logoUrl }: MobileNavContentProps) {
-  const { open, setOpen } = React.useContext(MobileNavContext);
+export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNavContentProps) {
+  const { setOpen } = React.useContext(MobileNavContext);
   const router = useRouter();
-  const [user, setUser] = React.useState<User | null>(null);
-  const [profile, setProfile] = React.useState<Profile>(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const supabase = createClient();
-    const checkUser = async () => {
-        setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-        if (user) {
-            const { data: profileData } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
-            setProfile(profileData);
-        }
-        setLoading(false);
-    };
-
-    checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-            const { data: profileData } = await supabase.from('profiles').select('is_admin').eq('id', session.user.id).single();
-            setProfile(profileData);
-        } else {
-            setProfile(null);
-        }
-    });
-
-    return () => {
-        authListener.subscription.unsubscribe();
-    };
-  }, []);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -104,7 +68,7 @@ export function MobileNavContent({ siteTitle, logoUrl }: MobileNavContentProps) 
     </Button>
   );
 
-  const dashboardHref = profile?.is_admin ? '/admin' : '/my-books';
+  const dashboardHref = isAdmin ? '/admin' : '/my-books';
 
   return (
     <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground p-4 flex flex-col">
