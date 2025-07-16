@@ -1,10 +1,5 @@
 // src/app/books/page.tsx
-import { EbookCard } from "@/components/ebook-card";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tag, Search, BookUp } from "lucide-react";
 import { BooksPageClient } from './books-page-client';
 
 export default async function BooksPage({
@@ -24,8 +19,6 @@ export default async function BooksPage({
 
   const allTags = ['All', ...(categories?.map(c => c.name) || [])];
 
-  const page = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
-  const limit = typeof searchParams.limit === 'string' ? Number(searchParams.limit) : 10;
   const searchTerm = typeof searchParams.q === 'string' ? searchParams.q : '';
   const selectedTag = typeof searchParams.tag === 'string' ? searchParams.tag : 'All';
   const purchaseType = typeof searchParams.type === 'string' ? searchParams.type : 'all';
@@ -41,9 +34,6 @@ export default async function BooksPage({
   }
 
   if (selectedTag !== 'All') {
-    // This assumes a 'tags' column which is an array of strings
-    // query = query.contains('tags', [selectedTag]);
-    // Or if categories are tags:
     query = query.eq('categories.name', selectedTag);
   }
   
@@ -64,13 +54,17 @@ export default async function BooksPage({
       title: book.title,
       description: book.description || '',
       price: `KES ${book.price}`,
-      thumbnailUrl: book.thumbnail_url || 'https://placehold.co/600x800',
+      thumbnailUrl: book.thumbnail_url || 'https://placehold.co/600x800.png',
       dataAiHint: book.data_ai_hint || 'book cover',
       tags: book.tags || [],
       // @ts-ignore
       category: book.categories?.name || 'Uncategorized',
       isSubscription: book.is_subscription,
       status: book.status as 'published' | 'draft',
+      // The book object from the db doesn't have these, but the component expects them.
+      // Providing default values to satisfy the type.
+      previewContent: book.preview_content || "No preview available.",
+      fullContent: "Full content is available after purchase.",
   })) || [];
 
 
@@ -84,3 +78,4 @@ export default async function BooksPage({
     />
   );
 }
+

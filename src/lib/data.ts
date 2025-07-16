@@ -1,5 +1,5 @@
-// This file is no longer needed as we are fetching data from Supabase.
-// It is kept to prevent breaking imports in components that are not yet updated.
+// This file provides a type definition for the Book object used in components.
+// Actual data is fetched from Supabase.
 
 export type Book = {
   id: string;
@@ -9,7 +9,7 @@ export type Book = {
   thumbnailUrl: string;
   dataAiHint: string;
   previewContent: string;
-  fullContent: string;
+  fullContent: string; // In a real app, this might be a URL to the content
   isFeatured?: boolean;
   isSubscription?: boolean;
   readCount?: number;
@@ -20,8 +20,11 @@ export type Book = {
   seoDescription?: string;
 };
 
+// Mock data is no longer used, but the getBookById function signature is kept
+// to avoid breaking imports in components that are not yet updated.
 export const books: Book[] = [];
 
 export const getBookById = (id: string): Book | undefined => {
     return undefined;
 };
+
