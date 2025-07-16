@@ -104,10 +104,6 @@ export default function ManageDevotionalsPage() {
 
   const drafts = devotionals.filter(d => !d.sent_at);
   const sentDevotionals = devotionals.filter(d => d.sent_at);
-  
-  const createMarkup = (htmlString: string) => {
-    return {__html: htmlString};
-  }
 
   return (
     <div>
