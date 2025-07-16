@@ -9,11 +9,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const supabase = createClient();
   const { data: settings } = await supabase.from('app_settings').select('site_title, site_description, logo_url').eq('id', 1).single();
 
+  const title = settings?.site_title || "Prophetic Reads";
+  const description = settings?.site_description || "E-books and daily devotionals by Dr. Climate Wiseman.";
+  const iconUrl = settings?.logo_url || '/favicon.ico';
+
   return {
-    title: settings?.site_title || "Prophetic Reads",
-    description: settings?.site_description || "E-books and daily devotionals by Dr. Climate Wiseman.",
+    title: title,
+    description: description,
     icons: {
-      icon: settings?.logo_url || '/favicon.ico',
+      icon: iconUrl,
     },
   }
 }
@@ -33,8 +37,9 @@ export default async function RootLayout({
   const { data: settings } = await supabase.from('app_settings').select('site_title, logo_url, footer_text').eq('id', 1).single();
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href={settings?.logo_url || '/favicon.ico'} sizes="any" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
