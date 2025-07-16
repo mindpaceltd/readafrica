@@ -14,11 +14,9 @@ export default function MyBooksPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check for purchased books on the client side only
     const purchased = books.filter(book => {
-      if (typeof window !== 'undefined') {
-        return localStorage.getItem(`book_${book.id}_purchased`) === 'true';
-      }
-      return false;
+      return localStorage.getItem(`book_${book.id}_purchased`) === 'true';
     });
     setPurchasedBooks(purchased);
     setIsLoading(false);

@@ -23,13 +23,13 @@ export default function BookPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you might persist purchase status in localStorage or a backend
     if (params.id) {
       const bookId = Array.isArray(params.id) ? params.id[0] : params.id;
       const bookData = getBookById(bookId);
       if (bookData) {
         setBook(bookData);
-        // Check mock purchase status
+        // In a real app, you might persist purchase status in localStorage or a backend
+        // Check mock purchase status only on the client
         const purchasedStatus = localStorage.getItem(`book_${bookId}_purchased`);
         if (purchasedStatus === 'true') {
           setIsPurchased(true);
