@@ -1,13 +1,82 @@
 // src/app/publisher/page.tsx
+'use client'
+
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { DollarSign, Users, BookOpen } from "lucide-react";
+import { DollarSign, BookOpen, Library } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function PublisherDashboard() {
+type Stats = {
+    revenue: number;
+    sales: number;
+    bookCount: number;
+}
+
+export default function PublisherDashboard() {
+    const supabase = createClient();
+    const [stats, setStats] = useState<Stats>({ revenue: 0, sales: 0, bookCount: 0 });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            // Fetch books published by the current user
+            const { data: books, count: bookCount, error: booksError } = await supabase
+                .from('books')
+                .select('id, price', { count: 'exact' })
+                .eq('publisher_id', user.id);
+
+            if (booksError) {
+                console.error("Error fetching publisher books:", booksError);
+                setLoading(false);
+                return;
+            }
+
+            const bookIds = books.map(b => b.id);
+            let totalRevenue = 0;
+            let totalSales = 0;
+
+            if (bookIds.length > 0) {
+                // Fetch transactions related to those books
+                const { data: transactions, error: transactionsError } = await supabase
+                    .from('transactions')
+                    .select('amount')
+                    .in('book_id', bookIds)
+                    .eq('status', 'completed');
+
+                if (transactionsError) {
+                    console.error("Error fetching transactions for publisher:", transactionsError);
+                } else {
+                    totalSales = transactions.length;
+                    totalRevenue = transactions.reduce((sum, txn) => sum + txn.amount, 0);
+                }
+            }
+
+            setStats({
+                revenue: totalRevenue,
+                sales: totalSales,
+                bookCount: bookCount || 0,
+            });
+
+            setLoading(false);
+        };
+
+        fetchStats();
+    }, [supabase]);
+
 
     return (
       <div>
@@ -21,7 +90,7 @@ export default async function PublisherDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KES 0.00</div>
+              {loading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">KES {stats.revenue.toFixed(2)}</div>}
                <p className="text-xs text-muted-foreground">
                 Revenue from your book sales
               </p>
@@ -33,7 +102,7 @@ export default async function PublisherDashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+0</div>
+              {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">+{stats.sales}</div>}
                <p className="text-xs text-muted-foreground">
                 Number of books sold
               </p>
@@ -44,10 +113,10 @@ export default async function PublisherDashboard() {
               <CardTitle className="text-sm font-medium">
                 Published Books
               </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Library className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+0</div>
+              {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{stats.bookCount}</div>}
                <p className="text-xs text-muted-foreground">
                 Your total number of books
               </p>
