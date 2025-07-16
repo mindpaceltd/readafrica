@@ -61,11 +61,11 @@ export async function duplicateBook(bookId: string) {
         throw new Error('Could not find the book to duplicate.');
     }
 
-    // 2. Prepare the new book data, ensuring all required fields are handled
-    const newBookData: Omit<TablesInsert<'books'>, 'id' | 'created_at' | 'updated_at'> = {
-        title: `${originalBook.title} (Copy)`,
-        author: originalBook.author,
-        description: originalBook.description,
+    // 2. Prepare the new book data
+    const newBookData: TablesInsert<'books'> = {
+        title: `${originalBook.title} (Copy ${Date.now().toString().slice(-6)})`, // Unique title
+        author: originalBook.author || 'Dr C Wiseman',
+        description: originalBook.description || 'No description provided.',
         price: originalBook.price,
         is_subscription: originalBook.is_subscription,
         category_id: originalBook.category_id,
@@ -78,7 +78,7 @@ export async function duplicateBook(bookId: string) {
         full_content_url: originalBook.full_content_url,
         thumbnail_url: originalBook.thumbnail_url,
         data_ai_hint: originalBook.data_ai_hint,
-        seo_title: originalBook.seo_title,
+        seo_title: originalBook.seo_title ? `${originalBook.seo_title} (Copy)` : null,
         seo_description: originalBook.seo_description,
     };
     
@@ -97,7 +97,7 @@ export async function duplicateBook(bookId: string) {
     return { success: true, data: newBook };
 }
 
-type CartItem = Omit<Tables<'books'>, 'created_at' | 'updated_at'>;
+type CartItem = Omit<Tables<'books'>, 'created_at' | 'updated_at' | 'full_content_url'>;
 
 export async function processCheckout(
   items: CartItem[]
