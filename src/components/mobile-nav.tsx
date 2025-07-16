@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookHeart, Info, Mail, BookOpen, LogIn, Sparkles } from 'lucide-react';
+import { BookHeart, Info, Mail, BookOpen, LogIn, Sparkles, Handshake } from 'lucide-react';
 
 const MobileNavContext = React.createContext<{
   open: boolean;
@@ -63,6 +63,7 @@ export function MobileNavContent() {
       <nav className="flex flex-col space-y-2">
          <NavLink href="/my-books"><BookOpen/>My Books</NavLink>
          <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
+         <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
          <NavLink href="/#about"><Info/>About</NavLink>
          <NavLink href="/#contact"><Mail/>Contact</NavLink>
       </nav>

@@ -20,6 +20,9 @@ export function Header() {
            <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 hover:text-primary-foreground" asChild>
              <Link href="/devotionals">Devotionals</Link>
           </Button>
+           <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 hover:text-primary-foreground" asChild>
+             <Link href="/volunteer">Volunteer</Link>
+          </Button>
            <Button className="text-primary-foreground bg-accent hover:bg-accent/80" asChild>
              <Link href="/login">Login</Link>
           </Button>
