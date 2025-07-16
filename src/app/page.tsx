@@ -21,7 +21,10 @@ export default function Home() {
           </section>
         </div>
       </main>
-      <footer className="text-center p-4 text-muted-foreground text-sm">
+      <footer
+        className="text-center p-4 text-muted-foreground text-sm"
+        suppressHydrationWarning
+      >
         <p>&copy; {new Date().getFullYear()} Dr. Climate Wiseman. All rights reserved.</p>
       </footer>
     </div>
