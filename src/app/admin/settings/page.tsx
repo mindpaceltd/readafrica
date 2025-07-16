@@ -8,20 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { UploadCloud } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-// Helper function to convert hex color to an HSL string, defined correctly outside the component.
+// Helper function to convert hex color to an HSL string.
 const hexToHslString = (hex: string): string => {
-    if (!hex.startsWith('#') || hex.length !== 7) return '';
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-  
+    if (!hex.startsWith('#') || (hex.length !== 4 && hex.length !== 7)) return '';
+    let r = 0, g = 0, b = 0;
+    if (hex.length === 4) { // #RGB format
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+    } else { // #RRGGBB format
+        r = parseInt(hex.slice(1, 3), 16);
+        g = parseInt(hex.slice(3, 5), 16);
+        b = parseInt(hex.slice(5, 7), 16);
+    }
+
+    r /= 255; g /= 255; b /= 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h = 0, s = 0, l = (max + min) / 2;
-  
+
     if (max !== min) {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -40,37 +48,35 @@ export default function SettingsPage() {
     // Default to the correct theme colors.
     const [primaryColor, setPrimaryColor] = useState('#4A148C');
     const [accentColor, setAccentColor] = useState('#5E35B1');
-    const [backgroundColor, setBackgroundColor] = useState('#E1BEE7'); // Matching light purple from guidelines
+    const [backgroundColor, setBackgroundColor] = useState('#E1BEE7'); 
 
     // This effect runs once on the client to sync the color pickers with the current theme.
     useEffect(() => {
         const root = document.documentElement;
         
         const getHexFromHslVar = (varName: string) => {
+            if (typeof window === 'undefined') return '#000000';
             const hslStr = getComputedStyle(root).getPropertyValue(varName).trim();
-            if (!hslStr) return null;
+            if (!hslStr) return '#000000';
             
-            const [h, s, l] = hslStr.split(' ').map(val => parseFloat(val));
-            if (isNaN(h) || isNaN(s) || isNaN(l)) return null;
+            let [h, s, l] = hslStr.split(' ').map(val => parseFloat(val));
+            if (isNaN(h) || isNaN(s) || isNaN(l)) return '#000000';
 
-            const s_norm = s / 100;
-            const l_norm = l / 100;
+            s /= 100;
+            l /= 100;
 
             const k = (n: number) => (n + h / 30) % 12;
-            const a = s_norm * Math.min(l_norm, 1 - l_norm);
+            const a = s * Math.min(l, 1 - l);
             const f = (n: number) =>
-                l_norm - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+                l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
             
-            return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
+            const toHex = (val: number) => Math.round(val * 255).toString(16).padStart(2, '0');
+            return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
         };
         
-        const initialPrimary = getHexFromHslVar('--primary');
-        const initialAccent = getHexFromHslVar('--accent');
-        const initialBackground = getHexFromHslVar('--background');
-
-        if(initialPrimary) setPrimaryColor(initialPrimary);
-        if(initialAccent) setAccentColor(initialAccent);
-        if(initialBackground) setBackgroundColor(initialBackground);
+        setPrimaryColor(getHexFromHslVar('--primary'));
+        setAccentColor(getHexFromHslVar('--accent'));
+        setBackgroundColor(getHexFromHslVar('--background'));
 
     }, []);
 
@@ -100,65 +106,11 @@ export default function SettingsPage() {
 
         <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="payments">Payments</TabsTrigger>
-                <TabsTrigger value="appearance">Appearance</TabsTrigger>
                 <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                <TabsTrigger value="payments">Payments</TabsTrigger>
                 <TabsTrigger value="roles">Admin Roles</TabsTrigger>
             </TabsList>
-            <TabsContent value="payments">
-                <Card>
-                <CardHeader>
-                    <CardTitle>Payment Gateway</CardTitle>
-                    <CardDescription>
-                        Configure your M-Pesa Daraja API keys for processing payments.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="consumer-key">Consumer Key</Label>
-                        <Input id="consumer-key" type="password" defaultValue="**************" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="consumer-secret">Consumer Secret</Label>
-                        <Input id="consumer-secret" type="password" defaultValue="**************" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="passkey">Passkey</Label>
-                        <Input id="passkey" type="password" defaultValue="**************" />
-                    </div>
-                    <Button>Save Changes</Button>
-                </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="appearance">
-                <Card>
-                <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
-                    <CardDescription>
-                        Customize the look and feel of your application.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid md:grid-cols-3 gap-4">
-                         <div className="space-y-2">
-                            <Label htmlFor="primary-color">Primary Color</Label>
-                            <div className="relative">
-                                <Input id="primary-color" type="color" value={primaryColor} onChange={(e) => handleColorChange('primary', e.target.value)} className="p-1 h-10 w-full" />
-                            </div>
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="accent-color">Accent Color</Label>
-                            <Input id="accent-color" type="color" value={accentColor} onChange={(e) => handleColorChange('accent', e.target.value)} className="p-1 h-10 w-full" />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="background-color">Background Color</Label>
-                            <Input id="background-color" type="color" value={backgroundColor} onChange={(e) => handleColorChange('background', e.target.value)} className="p-1 h-10 w-full"/>
-                        </div>
-                    </div>
-                    <Button>Save Theme</Button>
-                </CardContent>
-                </Card>
-            </TabsContent>
             <TabsContent value="general" className="space-y-6">
                  <Card>
                     <CardHeader>
@@ -227,13 +179,67 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
             </TabsContent>
+            <TabsContent value="appearance">
+                <Card>
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>
+                        Customize the look and feel of your application.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid md:grid-cols-3 gap-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="primary-color">Primary Color</Label>
+                            <div className="relative">
+                                <Input id="primary-color" type="color" value={primaryColor} onChange={(e) => handleColorChange('primary', e.target.value)} className="p-1 h-10 w-full" />
+                            </div>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="accent-color">Accent Color</Label>
+                            <Input id="accent-color" type="color" value={accentColor} onChange={(e) => handleColorChange('accent', e.target.value)} className="p-1 h-10 w-full" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="background-color">Background Color</Label>
+                            <Input id="background-color" type="color" value={backgroundColor} onChange={(e) => handleColorChange('background', e.target.value)} className="p-1 h-10 w-full"/>
+                        </div>
+                    </div>
+                    <Button>Save Theme</Button>
+                </CardContent>
+                </Card>
+            </TabsContent>
+             <TabsContent value="payments">
+                <Card>
+                <CardHeader>
+                    <CardTitle>Payment Gateway</CardTitle>
+                    <CardDescription>
+                        Configure your M-Pesa Daraja API keys for processing payments.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="consumer-key">Consumer Key</Label>
+                        <Input id="consumer-key" type="password" defaultValue="**************" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="consumer-secret">Consumer Secret</Label>
+                        <Input id="consumer-secret" type="password" defaultValue="**************" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="passkey">Passkey</Label>
+                        <Input id="passkey" type="password" defaultValue="**************" />
+                    </div>
+                    <Button>Save Changes</Button>
+                </CardContent>
+                </Card>
+            </TabsContent>
             <TabsContent value="roles">
                  <Card>
                     <CardHeader>
                         <CardTitle>Admin Roles</CardTitle>
                         <CardDescription>
                             Manage roles and permissions for admin users. (Feature coming soon)
-                        </Description>
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground">This section is under development.</p>
@@ -244,3 +250,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
