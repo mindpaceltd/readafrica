@@ -3,14 +3,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock } from "lucide-react";
+import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/books", label: "Manage Books", icon: BookMarked },
+    { href: "/admin/books", label: "Manage Books", icon: BookMarked, subItems: [
+        { href: "/admin/books/categories", label: "Book Categories", icon: FolderKanban },
+    ]},
     { href: "/admin/subscriptions", label: "Subscription Plans", icon: Gem },
     { href: "/admin/devotionals", label: "Devotionals", icon: MessageCircle },
     { href: "/admin/transactions", label: "Transactions", icon: ShoppingCart },
@@ -71,19 +73,35 @@ function NavLinks() {
     return (
         <>
             {navItems.map((item) => (
-                <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        item.href === "/admin" 
-                            ? (isExactDashboard && "bg-muted text-primary")
-                            : (pathname.startsWith(item.href) && "bg-muted text-primary")
+                <div key={item.href}>
+                    <Link
+                        href={item.href}
+                        className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                            pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin') ? "bg-muted text-primary" : ""
+                        )}
+                    >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                    </Link>
+                    {item.subItems && pathname.startsWith(item.href) && (
+                         <div className="ml-7 mt-2 space-y-2 border-l pl-4">
+                            {item.subItems.map((subItem) => (
+                                <Link
+                                    key={subItem.href}
+                                    href={subItem.href}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-primary",
+                                        pathname.startsWith(subItem.href) ? "text-primary font-semibold" : ""
+                                    )}
+                                >
+                                     <subItem.icon className="h-4 w-4" />
+                                    {subItem.label}
+                                </Link>
+                            ))}
+                        </div>
                     )}
-                >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                </Link>
+                </div>
             ))}
         </>
     )
