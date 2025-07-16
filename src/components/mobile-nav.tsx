@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookHeart, Info, Mail } from 'lucide-react';
+import { BookHeart, Info, Mail, BookOpen, LogIn, Sparkles } from 'lucide-react';
 
 const MobileNavContext = React.createContext<{
   open: boolean;
@@ -40,10 +40,18 @@ export function MobileNavTrigger({ children }: { children: React.ReactNode }) {
 export function MobileNavContent() {
   const { setOpen } = React.useContext(MobileNavContext);
 
+  const NavLink = ({ href, children }: {href: string, children: React.ReactNode}) => (
+    <Button variant="ghost" className="justify-start gap-3 text-lg py-6" asChild>
+        <Link href={href} onClick={() => setOpen(false)}>
+            {children}
+        </Link>
+    </Button>
+  )
+
   return (
-    <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground">
+    <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground p-4">
       <SheetHeader>
-        <SheetTitle>
+        <SheetTitle className="mb-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={() => setOpen(false)}>
             <BookHeart className="h-7 w-7 group-hover:text-accent transition-colors" />
             <span className="text-2xl font-headline group-hover:text-accent transition-colors">
@@ -52,20 +60,20 @@ export function MobileNavContent() {
           </Link>
         </SheetTitle>
       </SheetHeader>
-      <nav className="flex flex-col space-y-4 mt-8">
-        <Button variant="ghost" className="justify-start gap-3" asChild>
-          <Link href="#about" onClick={() => setOpen(false)}>
-            <Info />
-            About
-          </Link>
-        </Button>
-        <Button variant="ghost" className="justify-start gap-3" asChild>
-          <Link href="#contact" onClick={() => setOpen(false)}>
-            <Mail />
-            Contact
-          </Link>
-        </Button>
+      <nav className="flex flex-col space-y-2">
+         <NavLink href="/my-books"><BookOpen/>My Books</NavLink>
+         <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
+         <NavLink href="/#about"><Info/>About</NavLink>
+         <NavLink href="/#contact"><Mail/>Contact</NavLink>
       </nav>
+      <div className="absolute bottom-4 right-4 left-4">
+        <Button className="w-full justify-center gap-3" asChild>
+            <Link href="/login" onClick={() => setOpen(false)}>
+                <LogIn/>
+                Login / Register
+            </Link>
+        </Button>
+      </div>
     </SheetContent>
   );
 }

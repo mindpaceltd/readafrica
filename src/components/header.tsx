@@ -13,12 +13,15 @@ export function Header() {
             Prophetic Reads
           </h1>
         </Link>
-        <div className="hidden md:flex items-center gap-4">
-          <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 hover:text-primary-foreground">
-             <Link href="#about">About</Link>
+        <div className="hidden md:flex items-center gap-2">
+          <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 hover:text-primary-foreground" asChild>
+             <Link href="/my-books">My Books</Link>
           </Button>
-           <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 hover:text-primary-foreground">
-             <Link href="#contact">Contact</Link>
+           <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 hover:text-primary-foreground" asChild>
+             <Link href="/devotionals">Devotionals</Link>
+          </Button>
+           <Button className="text-primary-foreground bg-accent hover:bg-accent/80" asChild>
+             <Link href="/login">Login</Link>
           </Button>
         </div>
         <div className="md:hidden">
