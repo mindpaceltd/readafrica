@@ -8,12 +8,12 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle, Gem, Check, Trash2, Edit } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 type Plan = {
-    id: number;
+    id: string;
     name: string;
     price: string;
     period: 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -23,7 +23,7 @@ type Plan = {
 
 const initialPlans: Plan[] = [
     {
-        id: 1,
+        id: "plan-1",
         name: "Bronze Tier",
         price: "500",
         period: "monthly",
@@ -31,7 +31,7 @@ const initialPlans: Plan[] = [
         active: true
     },
     {
-        id: 2,
+        id: "plan-2",
         name: "Silver Tier",
         price: "1000",
         period: "monthly",
@@ -39,7 +39,7 @@ const initialPlans: Plan[] = [
         active: true
     },
     {
-        id: 3,
+        id: "plan-3",
         name: "Gold Tier",
         price: "2000",
         period: "monthly",
@@ -58,8 +58,10 @@ const initialFormState: Omit<Plan, 'id' | 'active' | 'features'> & { features: s
 export default function SubscriptionPlansPage() {
   const [plans, setPlans] = useState<Plan[]>(initialPlans);
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormState);
+  const idPrefix = useId();
+  let nextId = plans.length + 1;
 
   useEffect(() => {
     if (isEditing && selectedPlanId) {
@@ -97,11 +99,11 @@ export default function SubscriptionPlansPage() {
     const featuresArray = formData.features.split('\n').filter(f => f.trim() !== '');
     if (isEditing && selectedPlanId) {
         // Update existing plan
-        setPlans(plans.map(p => p.id === selectedPlanId ? { ...p, ...formData, features: featuresArray, price: formData.price } : p));
+        setPlans(plans.map(p => p.id === selectedPlanId ? { ...p, ...formData, id: p.id, features: featuresArray, price: formData.price, active: p.active } : p));
     } else {
         // Add new plan
         const newPlan: Plan = {
-            id: plans.length > 0 ? Math.max(...plans.map(p => p.id)) + 1 : 1,
+            id: `${idPrefix}-${nextId++}`,
             ...formData,
             features: featuresArray,
             price: formData.price,
@@ -138,7 +140,7 @@ export default function SubscriptionPlansPage() {
                              <CardDescription>KES {plan.price}/{plan.period}</CardDescription>
                            </div>
                            <div className="flex items-center gap-2">
-                                <Switch checked={plan.active} aria-label={`Activate ${plan.name} plan`} />
+                                <Switch checked={plan.active} onCheckedChange={(checked) => setPlans(plans.map(p => p.id === plan.id ? {...p, active: checked} : p))} aria-label={`Activate ${plan.name} plan`} />
                                 <Button variant="ghost" size="icon" onClick={() => handleEditClick(plan)}><Edit className="h-4 w-4"/></Button>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
                            </div>
