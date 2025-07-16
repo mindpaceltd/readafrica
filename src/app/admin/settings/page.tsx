@@ -12,89 +12,70 @@ import { useEffect, useState } from "react";
 import { UploadCloud } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-// Helper function to convert HSL string to a hex color
-const hslToHex = (h: number, s: number, l: number): string => {
-    s /= 100;
-    l /= 100;
-    const k = (n: number) => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = (n: number) =>
-      l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
-    return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
-};
-
-// Helper function to convert hex color to an HSL string
-const hexToHsl = (hex: string): string => {
-    let r = 0, g = 0, b = 0;
-    if (hex.length === 4) {
-        r = parseInt(hex[1] + hex[1], 16);
-        g = parseInt(hex[2] + hex[2], 16);
-        b = parseInt(hex[3] + hex[3], 16);
-    } else if (hex.length === 7) {
-        r = parseInt(hex.slice(1, 3), 16);
-        g = parseInt(hex.slice(3, 5), 16);
-        b = parseInt(hex.slice(5, 7), 16);
-    }
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
+// Helper function to convert hex color to an HSL string, now defined correctly outside the component.
+const hexToHslString = (hex: string): string => {
+    if (!hex.startsWith('#')) return '';
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+  
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h = 0, s = 0, l = (max + min) / 2;
-
+  
     if (max !== min) {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
     }
-    
+  
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 };
 
 export default function SettingsPage() {
-
+    // Default to the correct theme colors.
     const [primaryColor, setPrimaryColor] = useState('#4A148C');
     const [accentColor, setAccentColor] = useState('#5E35B1');
-    const [backgroundColor, setBackgroundColor] = useState('#F3E5F5'); // Updated to a light purple that fits theme
+    const [backgroundColor, setBackgroundColor] = useState('#E1BEE7'); // Matching light purple from guidelines
 
+    // This effect runs once on the client to sync the color pickers with the current theme.
     useEffect(() => {
         const root = document.documentElement;
-        // The HSL values are stored without the var() wrapper.
-        // E.g. --primary: 271 70% 31%
-        const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
-        const accentHsl = getComputedStyle(root).getPropertyValue('--accent').trim();
-        const backgroundHsl = getComputedStyle(root).getPropertyValue('--background').trim();
         
-        if (primaryHsl) {
-            const [h, s, l] = primaryHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
-            if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
-              setPrimaryColor(hslToHex(h, s, l));
-            }
-        }
-        if (accentHsl) {
-            const [h, s, l] = accentHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
-             if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
-              setAccentColor(hslToHex(h, s, l));
-            }
-        }
-        if (backgroundHsl) {
-            const [h, s, l] = backgroundHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
-            if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
-             setBackgroundColor(hslToHex(h,s,l));
-            }
-        }
+        const getHexFromHslVar = (varName: string) => {
+            const hslStr = getComputedStyle(root).getPropertyValue(varName).trim();
+            if (!hslStr) return null;
+            const [h, s, l] = hslStr.split(' ').map(val => parseFloat(val));
+            if (isNaN(h) || isNaN(s) || isNaN(l)) return null;
+
+            const s_norm = s / 100;
+            const l_norm = l / 100;
+            const k = (n: number) => (n + h / 30) % 12;
+            const a = s_norm * Math.min(l_norm, 1 - l_norm);
+            const f = (n: number) =>
+                l_norm - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+            return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
+        };
+        
+        const initialPrimary = getHexFromHslVar('--primary');
+        const initialAccent = getHexFromHslVar('--accent');
+        const initialBackground = getHexFromHslVar('--background');
+
+        if(initialPrimary) setPrimaryColor(initialPrimary);
+        if(initialAccent) setAccentColor(initialAccent);
+        if(initialBackground) setBackgroundColor(initialBackground);
 
     }, []);
 
     const handleColorChange = (colorType: string, value: string) => {
         const root = document.documentElement;
-        const hslValue = hexToHsl(value);
+        const hslValue = hexToHslString(value);
+        if (!hslValue) return;
+
         if (colorType === 'primary') {
             setPrimaryColor(value);
             root.style.setProperty('--primary', hslValue);
