@@ -80,8 +80,8 @@ export function UserSidebar() {
                         </div>
                     </SheetContent>
                 </Sheet>
-                 <div className="flex-1 text-center">
-                    <h1 className="text-lg font-semibold">My Account</h1>
+                 <div className="flex-1 text-center font-semibold">
+                    My Account
                 </div>
             </header>
         </>

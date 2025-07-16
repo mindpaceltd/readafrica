@@ -223,7 +223,7 @@ export default function BookPage() {
                 <h2 className="text-xl md:text-2xl font-headline text-primary flex items-center gap-2">
                     {canViewFullContent ? <Unlock className="text-green-500"/> : <Lock className="text-red-500" />} Full Text
                 </h2>
-                <div className="mt-4 bg-card rounded-lg shadow-inner relative aspect-[8.5/11] w-full">
+                <div className="mt-4 bg-card rounded-lg shadow-inner relative aspect-[8.5/11] w-full min-h-[50vh] md:min-h-0">
                     {!canViewFullContent ? (
                         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
                            <div className="text-center p-4">

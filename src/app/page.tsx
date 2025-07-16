@@ -52,7 +52,7 @@ export default async function HomePage() {
     <div className="flex flex-col min-h-screen bg-background">
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative text-primary-foreground text-center py-24 md:py-40 px-4 isolate">
+        <section className="relative text-primary-foreground text-center py-20 md:py-32 px-4 isolate">
             <div className="absolute inset-0 -z-10">
                  <Image 
                     src="https://images.saymedia-content.com/.image/t_share/MTg2MTkzMjg5NzY0OTM5NDU5/five-biblical-steps-to-controlling-anger.jpg"
@@ -65,8 +65,8 @@ export default async function HomePage() {
                  <div className="absolute inset-0 bg-primary/70 mix-blend-multiply"></div>
             </div>
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'Prophetic Reads'}</h1>
-            <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
+            <h1 className="text-4xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'Prophetic Reads'}</h1>
+            <p className="text-base md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
                 {settings?.site_description || 'Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.'}
             </p>
             <Button size="lg" asChild>

@@ -58,8 +58,8 @@ export function AdminSidebar() {
                         </nav>
                     </SheetContent>
                 </Sheet>
-                 <div className="flex-1 text-center">
-                    <h1 className="text-lg font-semibold">Admin</h1>
+                 <div className="flex-1 text-center font-semibold">
+                    Admin Panel
                 </div>
             </header>
         </>
