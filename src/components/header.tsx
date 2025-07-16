@@ -7,10 +7,14 @@ import Link from "next/link";
 import { MobileNavTrigger } from "./mobile-nav";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 export function Header() {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Mock login state
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,15 +22,29 @@ export function Header() {
     };
     window.addEventListener('scroll', handleScroll);
 
-    // Simulate checking login status
-    if (typeof window !== 'undefined') {
-        // A real app would check a token, cookie, or context
-        const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
-        setIsLoggedIn(loggedInStatus);
+    const supabase = createClient();
+    const checkUser = async () => {
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
     }
+    checkUser();
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        setUser(session?.user ?? null);
+    });
+
+    return () => {
+        window.removeEventListener('scroll', handleScroll);
+        authListener.subscription.unsubscribe();
+    }
   }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   return (
     <header className={cn(
@@ -50,13 +68,13 @@ export function Header() {
            <Button variant="ghost" className="hover:text-primary" asChild>
              <Link href="/volunteer">Volunteer</Link>
           </Button>
-          {isLoggedIn && (
+          {user && (
             <Button variant="ghost" className="hover:text-primary" asChild>
                 <Link href="/dashboard"><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
-           <Button className="text-primary-foreground bg-primary hover:bg-primary/90" asChild>
-             <Link href="/login">{isLoggedIn ? "Logout" : "Login"}</Link>
+           <Button className="text-primary-foreground bg-primary hover:bg-primary/90" asChild={!user} onClick={user ? handleLogout : undefined}>
+             {user ? <span>Logout</span> : <Link href="/login">Login</Link>}
            </Button>
         </div>
         <div className="md:hidden">
