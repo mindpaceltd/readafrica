@@ -14,15 +14,14 @@ import { Textarea } from "@/components/ui/textarea";
 
 // Helper function to convert HSL string to a hex color
 const hslToHex = (h: number, s: number, l: number): string => {
-  s /= 100;
-  l /= 100;
-  const k = (n: number) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) =>
-    l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
-  return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
+    s /= 100;
+    l /= 100;
+    const k = (n: number) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n: number) =>
+      l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+    return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
 };
-
 
 // Helper function to convert hex color to an HSL string
 const hexToHsl = (hex: string): string => {
@@ -56,8 +55,7 @@ const hexToHsl = (hex: string): string => {
     }
     
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-}
-
+};
 
 export default function SettingsPage() {
 
@@ -108,7 +106,6 @@ export default function SettingsPage() {
             root.style.setProperty('--background', hslValue);
         }
     };
-
 
   return (
     <div>
