@@ -1,4 +1,6 @@
 // src/app/admin/books/page.tsx
+'use client'
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,8 +28,12 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
 import Image from "next/image";
+import { useState } from "react";
+import { BookForm } from "@/components/book-form";
 
 export default function ManageBooksPage() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -35,7 +41,7 @@ export default function ManageBooksPage() {
             <h1 className="text-3xl font-headline text-primary">Manage Books</h1>
             <p className="text-muted-foreground">Add, edit, and manage your e-books.</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsFormOpen(true)}>
           <PlusCircle className="mr-2" /> Add Book
         </Button>
       </div>
@@ -100,6 +106,7 @@ export default function ManageBooksPage() {
           </Table>
         </CardContent>
       </Card>
+      <BookForm open={isFormOpen} onOpenChange={setIsFormOpen} />
     </div>
   );
 }
