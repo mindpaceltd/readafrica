@@ -13,11 +13,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const DailyDevotionalInputSchema = z.object({
-  context: z
+  mood: z
     .string()
     .optional()
     .describe(
-      'Any contextual information that might be relevant for generating the devotional message.'
+      'The user selected mood for the devotional. e.g. "Faith", "Anxiety", "Breakthrough"'
     ),
 });
 export type DailyDevotionalInput = z.infer<typeof DailyDevotionalInputSchema>;
@@ -43,7 +43,8 @@ const prompt = ai.definePrompt({
   Generate a unique and inspiring message for the day.
   The message should be uplifting and provide spiritual guidance to the reader.
 
-  Context: {{{context}}}
+  If the user has provided a mood, tailor the message to be especially encouraging for someone feeling that way.
+  User's mood: {{{mood}}}
 
   Message:`,
 });

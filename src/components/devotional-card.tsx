@@ -8,22 +8,32 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Sparkles, RefreshCw, Hand, Shield, Star } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { cn } from "@/lib/utils";
+
+const moods = [
+    { name: "Faith", icon: Hand },
+    { name: "Anxiety", icon: Shield },
+    { name: "Breakthrough", icon: Star },
+]
 
 export function DevotionalCard() {
   const [devotional, setDevotional] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedMood, setSelectedMood] = useState("Faith");
 
-  const fetchDevotional = async () => {
+  const fetchDevotional = async (mood: string) => {
     setLoading(true);
     setError("");
+    setSelectedMood(mood);
     try {
       const result = await getDailyDevotional({
-        context: "A message of hope and encouragement.",
+        mood: mood,
       });
       setDevotional(result.message);
     } catch (err) {
@@ -35,7 +45,8 @@ export function DevotionalCard() {
   };
 
   useEffect(() => {
-    fetchDevotional();
+    fetchDevotional(selectedMood);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -50,7 +61,7 @@ export function DevotionalCard() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={fetchDevotional}
+          onClick={() => fetchDevotional(selectedMood)}
           disabled={loading}
           className="hover:bg-white/20 flex-shrink-0"
         >
@@ -73,6 +84,17 @@ export function DevotionalCard() {
           </CardDescription>
         )}
       </CardContent>
+      <CardFooter className="flex-col items-start gap-4">
+          <p className="text-sm font-medium text-primary-foreground/80">Need a specific word? Select a mood:</p>
+          <div className="flex flex-wrap gap-2">
+            {moods.map((mood) => (
+                <Button key={mood.name} variant="secondary" onClick={() => fetchDevotional(mood.name)} disabled={loading} className={cn(selectedMood === mood.name ? "bg-white/30" : "bg-white/10", "text-primary-foreground hover:bg-white/30")}>
+                    <mood.icon className="mr-2 h-4 w-4" />
+                    {mood.name}
+                </Button>
+            ))}
+          </div>
+      </CardFooter>
     </Card>
   );
 }
