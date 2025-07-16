@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell } from "lucide-react";
+import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/books", label: "Manage Books", icon: BookMarked },
+    { href: "/admin/subscriptions", label: "Subscription Plans", icon: Gem },
     { href: "/admin/devotionals", label: "Devotionals", icon: MessageCircle },
     { href: "/admin/transactions", label: "Transactions", icon: ShoppingCart },
     { href: "/admin/users", label: "Users", icon: Users },
@@ -72,8 +73,8 @@ function NavLinks() {
                     href={item.href}
                     className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        pathname.startsWith(item.href) && item.href !== "/admin" && "bg-muted text-primary",
-                        pathname === "/admin" && item.href === "/admin" && "bg-muted text-primary"
+                        pathname.startsWith(item.href) && (item.href !== "/admin" && item.href !== "/admin/books") && "bg-muted text-primary",
+                        pathname === item.href && "bg-muted text-primary"
                     )}
                 >
                     <item.icon className="h-4 w-4" />

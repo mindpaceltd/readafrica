@@ -36,56 +36,61 @@ type BookFormProps = {
   book?: Book | null;
 }
 
+const initialFormState = {
+    title: "",
+    description: "",
+    price: "",
+    purchaseType: "purchase",
+    isFeatured: false,
+    tags: [] as string[],
+}
+
 export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [purchaseType, setPurchaseType] = useState("purchase");
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
+  const [formData, setFormData] = useState(initialFormState);
   const [currentTag, setCurrentTag] = useState('');
 
   useEffect(() => {
-    if (book) {
-      setTitle(book.title);
-      setDescription(book.description || "");
-      setPrice(book.price.replace('KES ', ''));
-      setPurchaseType(book.isSubscription ? 'subscription' : 'purchase');
-      setIsFeatured(book.isFeatured || false);
-      setTags(book.tags || []);
-    } else {
+    if (open && book) {
+      setFormData({
+        title: book.title,
+        description: book.description || "",
+        price: book.price.replace('KES ', ''),
+        purchaseType: book.isSubscription ? 'subscription' : 'purchase',
+        isFeatured: book.isFeatured || false,
+        tags: book.tags || [],
+      });
+    } else if (open) {
       // Reset form when adding a new book
-      setTitle('');
-      setDescription('');
-      setPrice('');
-      setPurchaseType('purchase');
-      setIsFeatured(false);
-      setTags([]);
+      setFormData(initialFormState);
     }
-  }, [book]);
+  }, [book, open]);
+
+  const handleInputChange = (field: keyof typeof formData, value: any) => {
+      setFormData(prev => ({...prev, [field]: value}));
+  }
 
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const newTag = currentTag.trim();
-      if (newTag && !tags.includes(newTag)) {
-        setTags([...tags, newTag]);
+      if (newTag && !formData.tags.includes(newTag)) {
+        handleInputChange('tags', [...formData.tags, newTag]);
       }
       setCurrentTag('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    handleInputChange('tags', formData.tags.filter(tag => tag !== tagToRemove));
   };
 
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle book creation/update logic here
-    console.log("Submitting book:", { title, description, price, purchaseType, isFeatured, tags });
+    console.log("Submitting book:", formData);
     onOpenChange(false);
   }
 
@@ -93,20 +98,20 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
     <form id="book-form" onSubmit={handleFormSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">Book Title</Label>
-        <Input id="title" placeholder="e.g., The Prophetic Voice" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <Input id="title" placeholder="e.g., The Prophetic Voice" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Textarea id="description" placeholder="A short summary of the book" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea id="description" placeholder="A short summary of the book" rows={3} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
             <Label htmlFor="price">Price (KES)</Label>
-            <Input id="price" type="number" placeholder="e.g., 500" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <Input id="price" type="number" placeholder="e.g., 500" value={formData.price} onChange={(e) => handleInputChange('price', e.target.value)} />
         </div>
         <div className="space-y-2">
           <Label>Purchase Type</Label>
-          <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="flex pt-2 gap-4">
+          <RadioGroup value={formData.purchaseType} onValueChange={(value) => handleInputChange('purchaseType', value)} className="flex pt-2 gap-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="purchase" id="r1" />
               <Label htmlFor="r1">Purchase</Label>
@@ -121,7 +126,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
        <div className="space-y-2">
         <Label htmlFor="tags">SEO Tags</Label>
         <div className="flex flex-wrap gap-2 p-2 border rounded-md">
-            {tags.map(tag => (
+            {formData.tags.map(tag => (
                 <Badge key={tag} variant="secondary">
                     {tag}
                     <button type="button" onClick={() => removeTag(tag)} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
@@ -147,7 +152,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
                     Display this book prominently on the home page.
                 </p>
             </div>
-            <Switch checked={isFeatured} onCheckedChange={setIsFeatured} aria-label="Featured book" />
+            <Switch checked={formData.isFeatured} onCheckedChange={(value) => handleInputChange('isFeatured', value)} aria-label="Featured book" />
         </div>
        <div className="space-y-2">
         <Label>Book Cover</Label>
