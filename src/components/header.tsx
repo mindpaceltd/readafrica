@@ -7,10 +7,10 @@ import Link from "next/link";
 import { MobileNavTrigger } from "./mobile-nav";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 
 interface HeaderProps {
   siteTitle?: string | null;
@@ -54,9 +54,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
       <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex items-center gap-2 group">
           {logoUrl ? (
-            <div className="relative h-8 w-8">
-              <Image src={logoUrl} alt={siteTitle || 'Logo'} fill className="object-contain"/>
-            </div>
+             <Image src={logoUrl} alt={siteTitle || 'Logo'} width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain"/>
           ) : (
             <BookHeart className="text-primary h-7 w-7 md:h-8 md:w-8 group-hover:text-accent transition-colors" />
           )}
