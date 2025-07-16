@@ -1,3 +1,4 @@
+
 // src/components/book-form.tsx
 'use client'
 
@@ -60,6 +61,7 @@ const initialFormState = {
     thumbnail_url: "",
     full_content_url: "",
     data_ai_hint: "",
+    preview_content: ""
 }
 
 export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormProps) {
@@ -100,6 +102,7 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
         thumbnail_url: book.thumbnail_url || '',
         full_content_url: book.full_content_url || '',
         data_ai_hint: book.data_ai_hint || '',
+        preview_content: book.preview_content || ''
       });
     } else {
       setFormData(initialFormState);
@@ -202,6 +205,10 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" placeholder="A short summary of the book" rows={3} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} />
       </div>
+        <div className="space-y-2">
+            <Label htmlFor="preview_content">Book Preview</Label>
+            <Textarea id="preview_content" placeholder="A short preview of the book's content" rows={5} value={formData.preview_content} onChange={(e) => handleInputChange('preview_content', e.target.value)} />
+        </div>
        <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select value={formData.category_id?.toString()} onValueChange={(value) => handleInputChange('category_id', parseInt(value))}>
