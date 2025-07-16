@@ -76,7 +76,9 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNa
         <SheetTitle className="mb-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={() => setOpen(false)}>
             {logoUrl ? (
-              <Image src={logoUrl} alt={siteTitle || 'Logo'} width={28} height={28} className="h-7 w-7 object-contain"/>
+              <div className="relative h-7 w-7">
+                <Image src={logoUrl} alt={siteTitle || 'Logo'} fill className="object-contain"/>
+              </div>
             ) : (
                <BookHeart className="h-7 w-7 group-hover:text-accent transition-colors" />
             )}

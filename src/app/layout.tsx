@@ -9,11 +9,14 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = createClient();
-  const { data: settings } = await supabase.from('app_settings').select('site_title, site_description').eq('id', 1).single();
+  const { data: settings } = await supabase.from('app_settings').select('site_title, site_description, logo_url').eq('id', 1).single();
 
   return {
     title: settings?.site_title || "Prophetic Reads",
     description: settings?.site_description || "E-books and daily devotionals by Dr. Climate Wiseman.",
+    icons: {
+      icon: settings?.logo_url || '/favicon.ico',
+    },
   }
 }
 

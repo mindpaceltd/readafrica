@@ -54,7 +54,9 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
       <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex items-center gap-2 group">
           {logoUrl ? (
-            <Image src={logoUrl} alt={siteTitle || 'Logo'} width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain"/>
+            <div className="relative h-8 w-8">
+              <Image src={logoUrl} alt={siteTitle || 'Logo'} fill className="object-contain"/>
+            </div>
           ) : (
             <BookHeart className="text-primary h-7 w-7 md:h-8 md:w-8 group-hover:text-accent transition-colors" />
           )}
