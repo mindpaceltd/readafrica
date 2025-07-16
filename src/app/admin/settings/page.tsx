@@ -61,10 +61,12 @@ export default function SettingsPage() {
 
     useEffect(() => {
         const root = document.documentElement;
+        // The HSL values are stored without the var() wrapper.
+        // E.g. --primary: 271 70% 31%
         const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
         const accentHsl = getComputedStyle(root).getPropertyValue('--accent').trim();
         const backgroundHsl = getComputedStyle(root).getPropertyValue('--background').trim();
-
+        
         if (primaryHsl) {
             const [h, s, l] = primaryHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
             if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
@@ -73,7 +75,7 @@ export default function SettingsPage() {
         }
         if (accentHsl) {
             const [h, s, l] = accentHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
-            if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
+             if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
               setAccentColor(hslToHex(h, s, l));
             }
         }
