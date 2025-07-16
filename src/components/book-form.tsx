@@ -36,6 +36,9 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import Link from "next/link"
+import ReactQuill from "react-quill"
+import 'react-quill/dist/quill.snow.css';
+import '../app/quill-custom.css';
 
 type BookWithCategory = Tables<'books'> & {
   categories: { name: string } | null;
@@ -200,6 +203,16 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
     setIsSubmitting(false);
   }
 
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{'list': 'ordered'}, {'list': 'bullet'}],
+      ['link'],
+      ['clean']
+    ],
+  };
+
   const formContent = (
     <form id="book-form" onSubmit={handleFormSubmit} className="space-y-6 px-1">
       <div className="space-y-2">
@@ -212,7 +225,13 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Textarea id="description" placeholder="A short summary of the book" rows={3} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} />
+        <ReactQuill 
+            theme="snow"
+            value={formData.description}
+            onChange={(value) => handleInputChange('description', value)}
+            modules={quillModules}
+            className="bg-background"
+        />
       </div>
         <div className="space-y-2">
             <Label htmlFor="preview_content">Book Preview</Label>

@@ -1,0 +1,53 @@
+/* src/app/quill-custom.css */
+.ql-toolbar {
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--muted));
+}
+  
+.ql-container {
+    border-bottom-left-radius: var(--radius);
+    border-bottom-right-radius: var(--radius);
+    border-color: hsl(var(--border));
+    font-family: inherit;
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+}
+
+.ql-editor {
+    min-height: 120px;
+}
+  
+.ql-snow .ql-stroke {
+    stroke: hsl(var(--foreground));
+}
+
+.ql-snow .ql-picker-label {
+    color: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar {
+    background-color: hsl(var(--muted));
+    border-color: hsl(var(--border));
+}
+
+.dark .ql-container {
+    background-color: hsl(var(--background));
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
+}
+
+.dark .ql-snow .ql-stroke {
+    stroke: hsl(var(--foreground));
+}
+
+.dark .ql-snow .ql-picker-label {
+    color: hsl(var(--foreground));
+}
+
+.dark .ql-snow .ql-picker-options {
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border-color: hsl(var(--border));
+}
