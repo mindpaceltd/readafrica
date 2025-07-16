@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/database.types";
+import DOMPurify from "dompurify";
 
 type BookWithCategory = Tables<'books'> & {
     categories: { name: string } | null;
@@ -169,6 +170,8 @@ export default function BookPage() {
     );
   }
 
+  const sanitizedDescription = book.description ? DOMPurify.sanitize(book.description) : null;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -194,7 +197,14 @@ export default function BookPage() {
               </div>
               <CardContent className="p-4">
                  <h1 className="text-2xl md:text-3xl font-headline text-primary mb-2">{book.title}</h1>
-                 <p className="text-muted-foreground mb-4 text-sm md:text-base">{book.description}</p>
+                 {sanitizedDescription ? (
+                    <div
+                        className="prose prose-sm dark:prose-invert text-muted-foreground mb-4"
+                        dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground mb-4 text-sm">No description available.</p>
+                  )}
                  <p className="text-2xl font-bold text-accent mb-4">KES {book.price}</p>
                  {canViewFullContent ? (
                      <div className="flex items-center justify-center w-full p-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-md">
