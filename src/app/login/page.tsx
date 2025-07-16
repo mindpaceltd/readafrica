@@ -47,26 +47,29 @@ export default function LoginPage() {
         className: 'bg-green-600 border-green-600 text-white',
     });
 
-    // Small delay to ensure session is propagated
-    setTimeout(async () => {
-        // Fetch profile to determine where to redirect
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('is_admin, role')
-            .eq('id', data.user.id)
-            .single();
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin, role')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profileError) {
+        throw profileError;
+      }
 
-        router.refresh();
-
-        if (profile?.is_admin) {
-            router.push('/admin');
-        } else if (profile?.role === 'publisher') {
-            router.push('/publisher/books');
-        } else {
-            router.push('/my-books');
-        }
-    }, 300); // 300ms delay
-
+      if (profile?.is_admin) {
+        window.location.href = '/admin';
+      } else if (profile?.role === 'publisher') {
+        window.location.href = '/publisher';
+      } else {
+        window.location.href = '/my-books';
+      }
+    } catch (err) {
+      console.error("Error fetching profile, redirecting to default.", err);
+      toast({ title: "Could not fetch profile", description: "Redirecting to your dashboard.", variant: "destructive"})
+      window.location.href = '/my-books';
+    }
   };
 
   return (

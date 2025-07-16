@@ -1,5 +1,7 @@
 
 // src/app/subscriptions/page.tsx
+'use client'
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,27 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, Gem } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Check, Gem, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { redirect, useRouter } from "next/navigation";
 import type { Tables } from "@/lib/database.types";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import type { User } from "@supabase/supabase-js";
 
-
-async function getSubscriptionPlans() {
-    const supabase = createClient();
-    const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('active', true)
-        .order('price', { ascending: true });
-
-    if (error) {
-        console.error("Error fetching subscription plans:", error);
-        return [];
-    }
-    return data;
-}
 
 const faqs = [
     {
@@ -51,8 +40,77 @@ const faqs = [
     }
 ]
 
-export default async function SubscriptionsPage() {
-    const plans = await getSubscriptionPlans();
+export default function SubscriptionsPage() {
+    const supabase = createClient();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const [plans, setPlans] = useState<Tables<'subscription_plans'>[]>([]);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const getPlansAndUser = async () => {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+
+            const { data, error } = await supabase
+                .from('subscription_plans')
+                .select('*')
+                .eq('active', true)
+                .order('price', { ascending: true });
+
+            if (error) {
+                console.error("Error fetching subscription plans:", error);
+                toast({ title: "Error", description: "Could not load subscription plans.", variant: "destructive" });
+            } else {
+                setPlans(data);
+            }
+            setLoading(false);
+        };
+        getPlansAndUser();
+    }, [supabase, toast]);
+    
+    const handleSubscribe = async (planId: string) => {
+        if (!user) {
+            toast({ title: "Please login to subscribe", description: "You need an account to purchase a subscription."});
+            router.push('/login');
+            return;
+        }
+
+        setSubscribingPlanId(planId);
+        
+        try {
+            const response = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planId }),
+            });
+
+            const session = await response.json();
+
+            if (!response.ok) {
+                throw new Error(session.error || 'An unknown error occurred.');
+            }
+            
+            toast({ title: "Purchase Successful!", description: "Your subscription is now active.", className: 'bg-green-600 border-green-600 text-white' });
+            router.push(session.redirectUrl);
+
+        } catch (error) {
+            toast({ title: "Subscription Failed", description: (error as Error).message, variant: "destructive" });
+        } finally {
+            setSubscribingPlanId(null);
+        }
+    };
+
+
+    if (loading) {
+        return <div className="flex justify-center items-center min-h-[60vh]">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+    }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -97,8 +155,8 @@ export default async function SubscriptionsPage() {
                                 </ul>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" asChild>
-                                    <Link href="/login">Subscribe to {plan.name}</Link>
+                                <Button className="w-full" onClick={() => handleSubscribe(plan.id)} disabled={subscribingPlanId === plan.id}>
+                                    {subscribingPlanId === plan.id ? <Loader2 className="animate-spin" /> : `Subscribe to ${plan.name}`}
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -131,9 +189,7 @@ export default async function SubscriptionsPage() {
                 <p className="text-muted-foreground mt-2 mb-6">
                     Join thousands of readers who have unlimited access to prophetic literature.
                 </p>
-                <Button size="lg" asChild>
-                    <Link href="/signup">Sign Up to Get Started</Link>
-                </Button>
+                <Button size="lg" onClick={() => router.push('/signup')}>Sign Up to Get Started</Button>
             </section>
         </main>
     </div>
