@@ -64,8 +64,8 @@ export async function duplicateBook(bookId: string) {
     // 2. Prepare the new book data
     const newBookData: TablesInsert<'books'> = {
         title: `${originalBook.title} (Copy ${Date.now().toString().slice(-6)})`, // Unique title
-        author: originalBook.author || 'Dr C Wiseman',
-        description: originalBook.description || 'No description provided.',
+        author: originalBook.author,
+        description: originalBook.description,
         price: originalBook.price,
         is_subscription: originalBook.is_subscription,
         category_id: originalBook.category_id,

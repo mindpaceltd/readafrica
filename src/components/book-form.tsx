@@ -50,7 +50,7 @@ type BookFormProps = {
 
 const initialFormState = {
     title: "",
-    author: "Dr C Wiseman",
+    author: "",
     description: "",
     price: 0,
     is_subscription: false,
@@ -93,7 +93,7 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
     if (open && book) {
       setFormData({
         title: book.title,
-        author: book.author || "Dr C Wiseman",
+        author: book.author || "",
         description: book.description || "",
         price: book.price,
         is_subscription: book.is_subscription,
