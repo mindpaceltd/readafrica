@@ -87,7 +87,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
                 </Button>
             ))}
           {user && (
-            <Button variant="ghost" className={cn("hover:text-primary", pathname.startsWith(dashboardHref) ? 'text-primary font-semibold' : '')} asChild>
+            <Button variant="ghost" className={cn("hover:text-primary", pathname.startsWith('/my-books') || pathname.startsWith('/admin') || pathname.startsWith('/publisher') ? 'text-primary font-semibold' : '')} asChild>
                 <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
@@ -97,7 +97,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
                     Subscribe
                 </Link>
             </Button>
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="icon" className="relative" asChild>
                 <Link href="/cart">
                     <ShoppingCart />
                     {items.length > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 justify-center rounded-full">{items.length}</Badge>}
@@ -108,7 +108,14 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
              {user ? <span>Logout</span> : <span>Login</span>}
            </Button>
         </div>
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="relative" asChild>
+                <Link href="/cart">
+                    <ShoppingCart />
+                    {items.length > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 justify-center rounded-full">{items.length}</Badge>}
+                    <span className="sr-only">Cart</span>
+                </Link>
+            </Button>
           <MobileNavTrigger>
             <Button
               variant="ghost"
