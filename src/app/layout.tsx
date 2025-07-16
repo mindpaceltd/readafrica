@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const supabase = createClient();
   const { data: settings } = await supabase.from('app_settings').select('site_title, site_description, logo_url').eq('id', 1).single();
 
-  const title = settings?.site_title || "africanreads";
+  const title = settings?.site_title || "Prophetic Reads";
   const description = settings?.site_description || "E-books and daily devotionals by Dr. Climate Wiseman.";
   const iconUrl = settings?.logo_url || undefined;
 
@@ -39,16 +39,16 @@ export default async function RootLayout({
   const { data: settings } = await supabase.from('app_settings').select('site_title, logo_url, footer_text').eq('id', 1).single();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Belleza&family=Alegreya:wght@400;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased bg-background text-foreground" suppressHydrationWarning>
+      <body className="font-body antialiased bg-background text-foreground">
         <CartProvider>
             <MobileNav>
             <Header
