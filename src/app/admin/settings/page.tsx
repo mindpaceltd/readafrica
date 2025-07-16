@@ -18,38 +18,6 @@ import Image from "next/image";
 
 type Settings = Tables<'app_settings'>;
 
-// Helper function to convert hex color to an HSL string.
-const hexToHslString = (hex: string): string => {
-    if (!hex || !hex.startsWith('#') || (hex.length !== 4 && hex.length !== 7)) return '';
-    let r = 0, g = 0, b = 0;
-    if (hex.length === 4) { // #RGB format
-        r = parseInt(hex[1] + hex[1], 16);
-        g = parseInt(hex[2] + hex[2], 16);
-        b = parseInt(hex[3] + hex[3], 16);
-    } else { // #RRGGBB format
-        r = parseInt(hex.slice(1, 3), 16);
-        g = parseInt(hex.slice(3, 5), 16);
-        b = parseInt(hex.slice(5, 7), 16);
-    }
-
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
-    }
-  
-    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-};
-
 export default function SettingsPage() {
     const supabase = createClient();
     const { toast } = useToast();
@@ -76,15 +44,6 @@ export default function SettingsPage() {
         fetchSettings();
     }, [supabase, toast]);
     
-    // This effect runs once on the client to sync the color pickers with the current theme.
-    useEffect(() => {
-        if (settings.primary_color && settings.accent_color && settings.background_color) {
-            handleColorChange('primary', settings.primary_color, false);
-            handleColorChange('accent', settings.accent_color, false);
-            handleColorChange('background', settings.background_color, false);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [settings.primary_color, settings.accent_color, settings.background_color]);
 
     const handleInputChange = (field: keyof Settings, value: any) => {
         setSettings(prev => ({...prev, [field]: value}));
@@ -131,31 +90,6 @@ export default function SettingsPage() {
         });
     }
 
-    const handleColorChange = (colorType: string, value: string, shouldSave: boolean = true) => {
-        const root = document.documentElement;
-        const hslValue = hexToHslString(value);
-        if (!hslValue) return;
-
-        if (colorType === 'primary') {
-            handleInputChange('primary_color', value);
-            root.style.setProperty('--primary', hslValue);
-        } else if (colorType === 'accent') {
-            handleInputChange('accent_color', value);
-            root.style.setProperty('--accent', hslValue);
-        } else if (colorType === 'background') {
-            handleInputChange('background_color', value);
-            root.style.setProperty('--background', hslValue);
-        }
-    };
-
-    const handleThemeSave = async () => {
-        await handleSave({
-            primary_color: settings.primary_color,
-            accent_color: settings.accent_color,
-            background_color: settings.background_color,
-        });
-    }
-
   return (
     <div>
         <div className="mb-8">
@@ -167,9 +101,8 @@ export default function SettingsPage() {
              <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
         ) : (
             <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="appearance">Appearance</TabsTrigger>
                     <TabsTrigger value="payments">Payments</TabsTrigger>
                     <TabsTrigger value="roles">Admin Roles</TabsTrigger>
                 </TabsList>
@@ -245,38 +178,6 @@ export default function SettingsPage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
-                <TabsContent value="appearance">
-                    <Card>
-                    <CardHeader>
-                        <CardTitle>Appearance</CardTitle>
-                        <CardDescription>
-                            Customize the look and feel of your application.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="primary-color">Primary Color</Label>
-                                <div className="relative">
-                                    <Input id="primary-color" type="color" value={settings.primary_color || '#4A148C'} onChange={(e) => handleColorChange('primary', e.target.value)} className="p-1 h-10 w-full" />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="accent-color">Accent Color</Label>
-                                <Input id="accent-color" type="color" value={settings.accent_color || '#5E35B1'} onChange={(e) => handleColorChange('accent', e.target.value)} className="p-1 h-10 w-full" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="background-color">Background Color</Label>
-                                <Input id="background-color" type="color" value={settings.background_color || '#E1BEE7'} onChange={(e) => handleColorChange('background', e.target.value)} className="p-1 h-10 w-full"/>
-                            </div>
-                        </div>
-                        <Button onClick={handleThemeSave} disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
-                            Save Theme
-                        </Button>
-                    </CardContent>
-                    </Card>
-                </TabsContent>
                 <TabsContent value="payments">
                     <Card>
                     <CardHeader>
@@ -330,5 +231,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
