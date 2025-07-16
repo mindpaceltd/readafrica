@@ -52,12 +52,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
     router.push('/login');
   }
 
-  let dashboardHref = '/my-books';
-  if (isAdmin) {
-      dashboardHref = '/admin';
-  } else if (userRole === 'publisher') {
-      dashboardHref = '/publisher';
-  }
+  const dashboardHref = '/dashboard';
   
   const navItems = [
       { href: "/books", label: "Books" },
