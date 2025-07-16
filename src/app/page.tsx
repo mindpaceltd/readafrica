@@ -1,3 +1,4 @@
+
 // src/app/page.tsx
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -74,7 +75,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto space-y-20 md:space-y-24 p-4 md:p-8">
+        <div className="max-w-5xl mx-auto space-y-20 md:space-y-24 p-4 md:p-8">
 
           {/* Featured Books Section */}
           {featuredBooks.length > 0 && (
@@ -98,7 +99,7 @@ export default async function HomePage() {
                         alt="Dr. Climate Wiseman"
                         fill
                         className="rounded-full object-cover shadow-lg"
-                        data-ai-hint="portrait man"
+                        data-ai-hint="man portrait"
                     />
                 </div>
                 <div className="text-center md:text-left">
