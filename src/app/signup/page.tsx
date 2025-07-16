@@ -62,18 +62,24 @@ export default function SignupPage() {
         return;
     }
 
+    if (data.user && data.user.identities?.length === 0) {
+      toast({
+            title: "Email already in use",
+            description: "An account with this email already exists. Please try logging in.",
+            variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+    }
+
     toast({
         title: "Sign Up Successful!",
-        description: "Redirecting to your dashboard...",
+        description: "Please check your email to verify your account and then log in.",
         className: 'bg-green-600 border-green-600 text-white',
+        duration: 8000
     });
-
-    if (selectedRole === 'publisher') {
-        router.push('/publisher');
-    } else {
-        router.push('/my-books');
-    }
-    router.refresh();
+    
+    router.push('/login');
   };
 
   return (
