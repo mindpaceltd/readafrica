@@ -14,37 +14,32 @@ import { Textarea } from "@/components/ui/textarea";
 
 // Helper function to convert HSL string to a hex color
 const hslToHex = (h: number, s: number, l: number): string => {
+  s /= 100;
   l /= 100;
-  const a = s * Math.min(l, 1 - l) / 100;
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) =>
+    l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+  return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
 };
 
 
 // Helper function to convert hex color to an HSL string
 const hexToHsl = (hex: string): string => {
-    if (!hex.startsWith('#')) return "0 0% 0%";
-
     let r = 0, g = 0, b = 0;
-    if (hex.length === 4) { // #RGB
+    if (hex.length === 4) {
         r = parseInt(hex[1] + hex[1], 16);
         g = parseInt(hex[2] + hex[2], 16);
         b = parseInt(hex[3] + hex[3], 16);
-    } else if (hex.length === 7) { // #RRGGBB
-        r = parseInt(hex.substring(1, 3), 16);
-        g = parseInt(hex.substring(3, 5), 16);
-        b = parseInt(hex.substring(5, 7), 16);
-    } else {
-        return "0 0% 0%";
+    } else if (hex.length === 7) {
+        r = parseInt(hex.slice(1, 3), 16);
+        g = parseInt(hex.slice(3, 5), 16);
+        b = parseInt(hex.slice(5, 7), 16);
     }
-
     r /= 255;
     g /= 255;
     b /= 255;
+
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     let h = 0, s = 0, l = (max + min) / 2;
@@ -59,12 +54,8 @@ const hexToHsl = (hex: string): string => {
         }
         h /= 6;
     }
-
-    h = Math.round(h * 360);
-    s = Math.round(s * 100);
-    l = Math.round(l * 100);
-
-    return `${h} ${s}% ${l}%`;
+    
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
 
