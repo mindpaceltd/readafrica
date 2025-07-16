@@ -91,7 +91,7 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin, userRole }
                <BookHeart className="h-7 w-7 group-hover:text-accent transition-colors" />
             )}
             <span className="text-2xl font-headline group-hover:text-accent transition-colors">
-              {siteTitle || 'ReadAfrica'}
+              {siteTitle || 'africanreads'}
             </span>
           </Link>
         </SheetTitle>

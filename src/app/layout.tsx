@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const supabase = createClient();
   const { data: settings } = await supabase.from('app_settings').select('site_title, site_description, logo_url').eq('id', 1).single();
 
-  const title = settings?.site_title || "ReadAfrica";
+  const title = settings?.site_title || "africanreads";
   const description = settings?.site_description || "E-books and daily devotionals by Dr. Climate Wiseman.";
   const iconUrl = settings?.logo_url || undefined;
 

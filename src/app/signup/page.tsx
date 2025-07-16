@@ -62,8 +62,6 @@ export default function SignupPage() {
         return;
     }
 
-    // Since email confirmation is disabled on the Supabase project settings,
-    // the user is automatically logged in. We can redirect them.
     toast({
         title: "Sign Up Successful!",
         description: "Redirecting to your dashboard...",
@@ -89,7 +87,7 @@ export default function SignupPage() {
             Create an Account
           </CardTitle>
           <CardDescription>
-            Join ReadAfrica to start your journey.
+            Join africanreads to start your journey.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -200,5 +198,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-    

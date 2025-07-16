@@ -1,3 +1,4 @@
+
 // src/app/page.tsx
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -89,7 +90,7 @@ export default async function HomePage() {
                  <div className="absolute inset-0 bg-primary/70 mix-blend-multiply"></div>
             </div>
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'ReadAfrica'}</h1>
+            <h1 className="text-4xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'africanreads'}</h1>
             <p className="text-base md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
                 {settings?.site_description || 'Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.'}
             </p>
