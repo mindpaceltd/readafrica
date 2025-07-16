@@ -19,18 +19,15 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function WhatsAppWidget() {
   const pathname = usePathname();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // We only want to show the widget on user-facing pages, not in the admin panel.
   useEffect(() => {
-    if (pathname.startsWith('/admin') || pathname.startsWith('/login')) {
-      setIsVisible(false);
-    } else {
-      setIsVisible(true);
-    }
-  }, [pathname]);
+    setIsMounted(true);
+  }, []);
 
-  if (!isVisible) {
+  const isVisible = !pathname.startsWith('/admin') && !pathname.startsWith('/login');
+
+  if (!isMounted || !isVisible) {
     return null;
   }
 

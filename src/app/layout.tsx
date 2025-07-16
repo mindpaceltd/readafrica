@@ -26,7 +26,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased bg-background text-foreground" suppressHydrationWarning>
+      <body className="font-body antialiased bg-background text-foreground">
         <MobileNav>
             <Header />
             <div className="flex flex-col min-h-screen">
