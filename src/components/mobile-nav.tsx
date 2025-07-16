@@ -15,6 +15,8 @@ import { BookHeart, Info, Mail, BookOpen, LogIn, LogOut, Sparkles, Handshake, La
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
 
 type Profile = {
     is_admin: boolean;
@@ -44,7 +46,12 @@ export function MobileNavTrigger({ children }: { children: React.ReactNode }) {
   return <SheetTrigger asChild>{children}</SheetTrigger>;
 }
 
-export function MobileNavContent() {
+interface MobileNavContentProps {
+  siteTitle?: string | null;
+  logoUrl?: string | null;
+}
+
+export function MobileNavContent({ siteTitle, logoUrl }: MobileNavContentProps) {
   const { open, setOpen } = React.useContext(MobileNavContext);
   const router = useRouter();
   const [user, setUser] = React.useState<User | null>(null);
@@ -104,9 +111,13 @@ export function MobileNavContent() {
       <SheetHeader>
         <SheetTitle className="mb-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={() => setOpen(false)}>
-            <BookHeart className="h-7 w-7 group-hover:text-accent transition-colors" />
+            {logoUrl ? (
+              <Image src={logoUrl} alt={siteTitle || 'Logo'} width={28} height={28} className="h-7 w-7 object-contain"/>
+            ) : (
+               <BookHeart className="h-7 w-7 group-hover:text-accent transition-colors" />
+            )}
             <span className="text-2xl font-headline group-hover:text-accent transition-colors">
-              Prophetic Reads
+              {siteTitle || 'Prophetic Reads'}
             </span>
           </Link>
         </SheetTitle>
@@ -116,8 +127,6 @@ export function MobileNavContent() {
          {user && <NavLink href={dashboardHref}><LayoutDashboard/>Dashboard</NavLink>}
          <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
-         <NavLink href="/#about"><Info/>About</NavLink>
-         <NavLink href="/#contact"><Mail/>Contact</NavLink>
       </nav>
       <div className="mt-auto">
         {user ? (

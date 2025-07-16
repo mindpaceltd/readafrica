@@ -1,7 +1,7 @@
 
 'use client';
 
-import { BookHeart, Menu, LayoutDashboard } from "lucide-react";
+import { BookHeart, LayoutDashboard, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MobileNavTrigger } from "./mobile-nav";
@@ -10,12 +10,18 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Profile = {
     is_admin: boolean;
 } | null;
 
-export function Header() {
+interface HeaderProps {
+  siteTitle?: string | null;
+  logoUrl?: string | null;
+}
+
+export function Header({ siteTitle, logoUrl }: HeaderProps) {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -54,13 +60,14 @@ export function Header() {
         } else {
             setProfile(null);
         }
+        router.refresh();
     });
 
     return () => {
         window.removeEventListener('scroll', handleScroll);
         authListener.subscription.unsubscribe();
     }
-  }, []);
+  }, [router]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -78,9 +85,13 @@ export function Header() {
       )}>
       <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex items-center gap-2 group">
-          <BookHeart className="text-primary h-7 w-7 md:h-8 md:w-8 group-hover:text-accent transition-colors" />
+          {logoUrl ? (
+            <Image src={logoUrl} alt={siteTitle || 'Logo'} width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain"/>
+          ) : (
+            <BookHeart className="text-primary h-7 w-7 md:h-8 md:w-8 group-hover:text-accent transition-colors" />
+          )}
           <h1 className="text-2xl md:text-3xl font-headline text-primary group-hover:text-accent transition-colors">
-            Prophetic Reads
+            {siteTitle || 'Prophetic Reads'}
           </h1>
         </Link>
         <div className="hidden md:flex items-center gap-2">

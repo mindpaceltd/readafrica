@@ -1,52 +1,78 @@
+
 // src/app/admin/page.tsx
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-  } from "@/components/ui/card";
+} from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { DollarSign, Users, BookOpen, MessageSquare } from "lucide-react";
 
 async function getStats() {
     const supabase = createClient();
 
-    const { data: revenue, error: revenueError } = await supabase
+    const revenuePromise = supabase
         .from('transactions')
-        .select('amount')
+        .select('amount', { count: 'exact' })
         .eq('status', 'completed');
 
-    const { data: users, error: usersError } = await supabase
+    const usersPromise = supabase
         .from('profiles')
         .select('id', { count: 'exact' });
 
-    const { data: sales, error: salesError } = await supabase
+    const salesPromise = supabase
         .from('transactions')
         .select('id', { count: 'exact' })
         .eq('status', 'completed')
         .eq('transaction_type', 'purchase');
 
-    const { data: devotionals, error: devotionalsError } = await supabase
+    const devotionalsPromise = supabase
         .from('devotionals')
         .select('id', { count: 'exact' })
         .not('sent_at', 'is', null)
+
+    const transactionsPromise = supabase
+        .from('transactions')
+        .select('id, created_at, amount, status, profiles(full_name, phone_number), books(title)')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    const [
+        { data: revenue, error: revenueError, count: revenueCount }, 
+        { error: usersError, count: usersCount }, 
+        { error: salesError, count: salesCount },
+        { error: devotionalsError, count: devotionalsCount },
+        { data: recentTransactions, error: transactionsError }
+    ] = await Promise.all([revenuePromise, usersPromise, salesPromise, devotionalsPromise, transactionsPromise]);
+
 
     if (revenueError) console.error("Revenue Error:", revenueError.message);
     if (usersError) console.error("Users Error:", usersError.message);
     if (salesError) console.error("Sales Error:", salesError.message);
     if (devotionalsError) console.error("Devotionals Error:", devotionalsError.message);
+    if (transactionsError) console.error("Transactions Error:", transactionsError.message);
 
 
     const totalRevenue = revenue?.reduce((sum, current) => sum + current.amount, 0) || 0;
-    const totalUsers = users?.length || 0;
-    const totalSales = sales?.length || 0;
-    const totalDevotionals = devotionals?.length || 0;
+    const totalUsers = usersCount || 0;
+    const totalSales = salesCount || 0;
+    const totalDevotionals = devotionalsCount || 0;
 
-    return { totalRevenue, totalUsers, totalSales, totalDevotionals };
+    return { totalRevenue, totalUsers, totalSales, totalDevotionals, recentTransactions };
 }
   
 export default async function AdminDashboard() {
-    const { totalRevenue, totalUsers, totalSales, totalDevotionals } = await getStats();
+    const { totalRevenue, totalUsers, totalSales, totalDevotionals, recentTransactions } = await getStats();
 
     return (
       <div>
@@ -98,10 +124,49 @@ export default async function AdminDashboard() {
         <div className="mt-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Activity</CardTitle>
+                    <CardTitle>Recent Transactions</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">Recent activity feed will be displayed here.</p>
+                <CardContent className="p-0">
+                     <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>User</TableHead>
+                            <TableHead>Item</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Date</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {recentTransactions && recentTransactions.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                                    No recent transactions.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {recentTransactions && recentTransactions.map((txn) => (
+                            <TableRow key={txn.id}>
+                            {/* @ts-ignore */}
+                            <TableCell className="font-medium">{txn.profiles?.full_name || txn.profiles?.phone_number || 'N/A'}</TableCell>
+                             {/* @ts-ignore */}
+                            <TableCell>{txn.books?.title || 'Subscription'}</TableCell>
+                            <TableCell className="text-right">KES {txn.amount.toFixed(2)}</TableCell>
+                            <TableCell>
+                                <Badge
+                                variant={
+                                    txn.status === 'completed' ? 'default' : txn.status === 'pending' ? 'secondary' : 'destructive'
+                                }
+                                className={txn.status === 'completed' ? 'bg-green-600' : ''}
+                                >
+                                {txn.status}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>{new Date(txn.created_at).toLocaleDateString()}</TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>

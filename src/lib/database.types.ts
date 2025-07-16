@@ -405,6 +405,36 @@ export type Database = {
           },
         ]
       }
+      volunteers: {
+        Row: {
+          id: string
+          created_at: string
+          full_name: string
+          email: string
+          phone_number: string | null
+          interests: string | null
+          status: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          full_name: string
+          email: string
+          phone_number?: string | null
+          interests?: string | null
+          status?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          full_name?: string
+          email?: string
+          phone_number?: string | null
+          interests?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

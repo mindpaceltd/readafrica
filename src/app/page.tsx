@@ -6,7 +6,6 @@ import { ArrowRight, BookHeart, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { EbookCard } from "@/components/ebook-card";
 import { createClient } from "@/lib/supabase/server";
-import { Book } from "@/lib/data";
 
 async function getFeaturedBooks() {
     const supabase = createClient();
@@ -45,6 +44,9 @@ async function getFeaturedBooks() {
 export default async function HomePage() {
 
   const featuredBooks = await getFeaturedBooks();
+  const supabase = createClient();
+  const { data: settings } = await supabase.from('app_settings').select('site_title, site_description').eq('id', 1).single();
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -63,9 +65,9 @@ export default async function HomePage() {
                  <div className="absolute inset-0 bg-primary/70 mix-blend-multiply"></div>
             </div>
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to Prophetic Reads</h1>
+            <h1 className="text-5xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'Prophetic Reads'}</h1>
             <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
-                Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.
+                {settings?.site_description || 'Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.'}
             </p>
             <Button size="lg" asChild>
                 <Link href="/books">
@@ -85,6 +87,7 @@ export default async function HomePage() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {featuredBooks.map((book) => (
+                    // @ts-ignore
                     <EbookCard key={book.id} book={book} />
                 ))}
                 </div>
@@ -129,12 +132,6 @@ export default async function HomePage() {
 
         </div>
       </main>
-      <footer
-        className="text-center p-6 text-muted-foreground text-sm"
-        suppressHydrationWarning
-      >
-        <p>&copy; {new Date().getFullYear()} Dr. Climate Wiseman. All rights reserved.</p>
-      </footer>
     </div>
   );
 }
