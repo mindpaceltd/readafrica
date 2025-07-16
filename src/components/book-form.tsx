@@ -25,7 +25,7 @@ import { Label } from "./ui/label"
 import { Textarea } from "./ui/textarea"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useState, useEffect, useMemo } from "react"
-import { UploadCloud, X, Loader2 } from "lucide-react"
+import { UploadCloud, X, Loader2, FileText } from "lucide-react"
 import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Badge } from "./ui/badge"
@@ -36,6 +36,7 @@ import { createClient } from "@/lib/supabase/client"
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
+import Link from "next/link"
 
 type BookWithCategory = Tables<'books'> & {
   categories: { name: string } | null;
@@ -136,7 +137,7 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
     e.preventDefault();
     setIsSubmitting(true);
     
-    let thumbnail_url = book?.thumbnail_url || '';
+    let thumbnail_url = formData.thumbnail_url || '';
     if (coverFile) {
         const { data, error } = await supabase.storage
             .from('book-covers')
@@ -150,7 +151,7 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
         thumbnail_url = publicUrl;
     }
     
-    let full_content_url = book?.full_content_url || '';
+    let full_content_url = formData.full_content_url || '';
     if (contentFile) {
         const { data, error } = await supabase.storage
             .from('book-content')
@@ -246,25 +247,33 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
             <Label>Cover & Content</Label>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    {book?.thumbnail_url && (
+                    {formData.thumbnail_url && (
                         <div className="relative aspect-[3/4] w-full rounded-md overflow-hidden border">
-                            <Image src={book.thumbnail_url} alt="Current cover" fill className="object-cover"/>
+                            <Image src={formData.thumbnail_url} alt="Current cover" fill className="object-cover"/>
                         </div>
                     )}
                     <label htmlFor="cover-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
                         <div className="flex flex-col items-center justify-center text-center">
                             <UploadCloud className="w-8 h-8 mb-1 text-muted-foreground"/>
-                            <p className="text-sm text-muted-foreground"><span className="font-semibold">{book?.thumbnail_url ? 'Change' : 'Upload'} Cover</span></p>
+                            <p className="text-sm text-muted-foreground"><span className="font-semibold">{formData.thumbnail_url ? 'Change' : 'Upload'} Cover</span></p>
                             {coverFile && <p className="text-xs text-green-500 mt-1 truncate max-w-full px-2">{coverFile.name}</p>}
                         </div>
                         <Input id="cover-upload" type="file" className="hidden" onChange={(e) => setCoverFile(e.target.files ? e.target.files[0] : null)}/>
                     </label>
                 </div> 
-                <div className="flex items-center justify-center w-full">
-                    <label htmlFor="content-upload" className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                <div className="space-y-2">
+                     {formData.full_content_url && (
+                        <div className="border rounded-md p-2 flex items-center gap-2">
+                           <FileText className="h-5 w-5 text-primary"/>
+                           <Link href={formData.full_content_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">
+                            View Current Content
+                           </Link>
+                        </div>
+                    )}
+                    <label htmlFor="content-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
                         <div className="flex flex-col items-center justify-center text-center">
                             <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground"/>
-                            <p className="text-sm text-muted-foreground"><span className="font-semibold">{book?.full_content_url ? 'Change' : 'Upload'} Content</span></p>
+                            <p className="text-sm text-muted-foreground"><span className="font-semibold">{formData.full_content_url ? 'Change' : 'Upload'} Content</span></p>
                             <p className="text-xs text-muted-foreground">PDF, EPUB</p>
                             {contentFile && <p className="text-xs text-green-500 mt-1 truncate max-w-full px-2">{contentFile.name}</p>}
                         </div>
@@ -389,5 +398,3 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
     </Drawer>
   )
 }
-
-    
