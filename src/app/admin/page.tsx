@@ -26,19 +26,27 @@ async function getStats() {
         .eq('status', 'completed')
         .eq('transaction_type', 'purchase');
 
+    const { data: devotionals, error: devotionalsError } = await supabase
+        .from('devotionals')
+        .select('id', { count: 'exact' })
+        .not('sent_at', 'is', null)
+
     if (revenueError) console.error("Revenue Error:", revenueError.message);
     if (usersError) console.error("Users Error:", usersError.message);
     if (salesError) console.error("Sales Error:", salesError.message);
+    if (devotionalsError) console.error("Devotionals Error:", devotionalsError.message);
+
 
     const totalRevenue = revenue?.reduce((sum, current) => sum + current.amount, 0) || 0;
     const totalUsers = users?.length || 0;
     const totalSales = sales?.length || 0;
+    const totalDevotionals = devotionals?.length || 0;
 
-    return { totalRevenue, totalUsers, totalSales };
+    return { totalRevenue, totalUsers, totalSales, totalDevotionals };
 }
   
 export default async function AdminDashboard() {
-    const { totalRevenue, totalUsers, totalSales } = await getStats();
+    const { totalRevenue, totalUsers, totalSales, totalDevotionals } = await getStats();
 
     return (
       <div>
@@ -83,10 +91,7 @@ export default async function AdminDashboard() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+573</div>
-              <p className="text-xs text-muted-foreground">
-                (Static Data)
-              </p>
+              <div className="text-2xl font-bold">+{totalDevotionals}</div>
             </CardContent>
           </Card>
         </div>
