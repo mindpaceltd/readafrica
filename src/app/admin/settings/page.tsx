@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { UploadCloud } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-// Helper function to convert hex color to an HSL string, now defined correctly outside the component.
+// Helper function to convert hex color to an HSL string, defined correctly outside the component.
 const hexToHslString = (hex: string): string => {
     if (!hex.startsWith('#') || hex.length !== 7) return '';
     const r = parseInt(hex.slice(1, 3), 16) / 255;
