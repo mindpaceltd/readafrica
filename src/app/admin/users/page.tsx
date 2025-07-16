@@ -15,8 +15,17 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
 
-  
 const users = [
     { id: 1, phone: '+254712345678', name: 'John Doe', joined: '2023-10-26', purchases: 3, balance: 'KES 150.00' },
     { id: 2, phone: '+254722345678', name: 'Jane Smith', joined: '2023-10-25', purchases: 1, balance: 'KES 50.00' },
@@ -42,6 +51,7 @@ export default function UsersPage() {
                             <TableHead>Purchases</TableHead>
                             <TableHead>Balance</TableHead>
                             <TableHead>Date Joined</TableHead>
+                            <TableHead><span className="sr-only">Actions</span></TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -65,6 +75,27 @@ export default function UsersPage() {
                                 </TableCell>
                                 <TableCell className="font-medium">{user.balance}</TableCell>
                                 <TableCell>{user.joined}</TableCell>
+                                <TableCell>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                        <Button
+                                            aria-haspopup="true"
+                                            size="icon"
+                                            variant="ghost"
+                                        >
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem>Manage Book Access</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive">Suspend User</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
                             </TableRow>
                         ))}
                         </TableBody>
