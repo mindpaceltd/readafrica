@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, KeyRound, User, Shield, Eye, EyeOff } from "lucide-react";
+import { Mail, KeyRound, User, Shield, Eye, EyeOff, Book, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+type Role = 'reader' | 'publisher';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -22,6 +25,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role>('reader');
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +46,7 @@ export default function SignupPage() {
       options: {
         data: {
             full_name: fullName,
+            role: selectedRole
         },
       },
     });
@@ -80,7 +85,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <div className="mx-auto bg-primary text-primary-foreground p-3 rounded-full w-fit mb-4">
                 <Shield />
@@ -94,6 +99,21 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignupSubmit} className="space-y-4">
+             <div className="space-y-2">
+                <Label>I want to join as a:</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => setSelectedRole('reader')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all", selectedRole === 'reader' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
+                        <Book className="h-8 w-8 text-primary mb-2" />
+                        <span className="font-semibold">Reader</span>
+                        <span className="text-xs text-muted-foreground text-center">Browse and read books from our collection</span>
+                    </button>
+                    <button type="button" onClick={() => setSelectedRole('publisher')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all", selectedRole === 'publisher' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
+                        <UploadCloud className="h-8 w-8 text-primary mb-2" />
+                        <span className="font-semibold">Publisher</span>
+                         <span className="text-xs text-muted-foreground text-center">Upload and manage your books for readers</span>
+                    </button>
+                </div>
+             </div>
              <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <div className="relative">

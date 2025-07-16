@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { MobileNav, MobileNavContent } from "@/components/mobile-nav";
 import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/header";
+import { CartProvider } from "@/context/cart-context";
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = createClient();
@@ -32,7 +33,7 @@ export default async function RootLayout({
   const { data: { user } } = await supabase.auth.getUser();
   
   const { data: profile } = user 
-    ? await supabase.from('profiles').select('is_admin').eq('id', user.id).single() 
+    ? await supabase.from('profiles').select('is_admin, role').eq('id', user.id).single() 
     : { data: null };
 
   const { data: settings } = await supabase.from('app_settings').select('site_title, logo_url, footer_text').eq('id', 1).single();
@@ -49,22 +50,26 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background text-foreground" suppressHydrationWarning>
-        <MobileNav>
-          <Header
-            siteTitle={settings?.site_title}
-            logoUrl={settings?.logo_url}
-            user={user}
-            isAdmin={profile?.is_admin || false}
-          />
-          <MobileNavContent
-            siteTitle={settings?.site_title}
-            logoUrl={settings?.logo_url}
-            user={user}
-            isAdmin={profile?.is_admin || false}
-          />
-          <main>{children}</main>
-        </MobileNav>
-        <Toaster />
+        <CartProvider>
+            <MobileNav>
+            <Header
+                siteTitle={settings?.site_title}
+                logoUrl={settings?.logo_url}
+                user={user}
+                isAdmin={profile?.is_admin || false}
+                userRole={profile?.role || 'reader'}
+            />
+            <MobileNavContent
+                siteTitle={settings?.site_title}
+                logoUrl={settings?.logo_url}
+                user={user}
+                isAdmin={profile?.is_admin || false}
+                userRole={profile?.role || 'reader'}
+            />
+            <main>{children}</main>
+            </MobileNav>
+            <Toaster />
+        </CartProvider>
       </body>
     </html>
   );

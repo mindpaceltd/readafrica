@@ -11,11 +11,13 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookHeart, Info, Mail, BookOpen, LogIn, LogOut, Sparkles, Handshake, LayoutDashboard, Gem } from 'lucide-react';
+import { BookHeart, Info, Mail, BookOpen, LogIn, LogOut, Sparkles, Handshake, LayoutDashboard, Gem, ShoppingCart } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useCart } from '@/context/cart-context';
+import { Badge } from './ui/badge';
 
 const MobileNavContext = React.createContext<{
   open: boolean;
@@ -46,11 +48,13 @@ interface MobileNavContentProps {
   logoUrl?: string | null;
   user: User | null;
   isAdmin: boolean;
+  userRole: 'reader' | 'publisher';
 }
 
-export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNavContentProps) {
+export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin, userRole }: MobileNavContentProps) {
   const { setOpen } = React.useContext(MobileNavContext);
   const router = useRouter();
+  const { items } = useCart();
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -60,15 +64,21 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNa
     router.refresh();
   };
 
-  const NavLink = ({ href, children }: {href: string, children: React.ReactNode}) => (
-    <Button variant="ghost" className="justify-start gap-3 text-lg py-6" asChild>
+  const NavLink = ({ href, children, badgeCount }: {href: string, children: React.ReactNode, badgeCount?: number}) => (
+    <Button variant="ghost" className="relative justify-start gap-3 text-lg py-6" asChild>
         <Link href={href} onClick={() => setOpen(false)}>
             {children}
+            {badgeCount && badgeCount > 0 && <Badge variant="destructive" className="absolute right-4 top-1/2 -translate-y-1/2">{badgeCount}</Badge>}
         </Link>
     </Button>
   );
 
-  const dashboardHref = isAdmin ? '/admin' : '/my-books';
+  let dashboardHref = '/my-books';
+  if (isAdmin) {
+      dashboardHref = '/admin';
+  } else if (userRole === 'publisher') {
+      dashboardHref = '/publisher';
+  }
 
   return (
     <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground p-4 flex flex-col">
@@ -91,6 +101,7 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNa
          {user && <NavLink href={dashboardHref}><LayoutDashboard/>Dashboard</NavLink>}
          <NavLink href="/subscriptions"><Gem />Subscriptions</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
+         <NavLink href="/cart" badgeCount={items.length}><ShoppingCart />Cart</NavLink>
       </nav>
       <div className="mt-auto">
         {user ? (

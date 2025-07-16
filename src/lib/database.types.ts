@@ -103,6 +103,7 @@ export type Database = {
           is_subscription: boolean
           price: number
           preview_content: string | null
+          publisher_id: string | null
           seo_description: string | null
           seo_title: string | null
           status: string
@@ -124,6 +125,7 @@ export type Database = {
           is_subscription?: boolean
           price: number
           preview_content?: string | null
+          publisher_id?: string | null
           seo_description?: string | null
           seo_title?: string | null
           status: string
@@ -145,6 +147,7 @@ export type Database = {
           is_subscription?: boolean
           price?: number
           preview_content?: string | null
+          publisher_id?: string | null
           seo_description?: string | null
           seo_title?: string | null
           status?: string
@@ -159,6 +162,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "books_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -259,6 +269,7 @@ export type Database = {
           id: string
           is_admin: boolean
           phone_number: string | null
+          role: string
           updated_at: string | null
         }
         Insert: {
@@ -268,6 +279,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           phone_number?: string | null
+          role?: string
           updated_at?: string | null
         }
         Update: {
@@ -277,6 +289,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           phone_number?: string | null
+          role?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -412,30 +425,30 @@ export type Database = {
       }
       volunteers: {
         Row: {
-          id: string
           created_at: string
-          full_name: string
           email: string
-          phone_number: string | null
+          full_name: string
+          id: string
           interests: string | null
+          phone_number: string | null
           status: string
         }
         Insert: {
-          id?: string
           created_at?: string
-          full_name: string
           email: string
-          phone_number?: string | null
+          full_name: string
+          id?: string
           interests?: string | null
+          phone_number?: string | null
           status?: string
         }
         Update: {
-          id?: string
           created_at?: string
-          full_name?: string
           email?: string
-          phone_number?: string | null
+          full_name?: string
+          id?: string
           interests?: string | null
+          phone_number?: string | null
           status?: string
         }
         Relationships: []
@@ -549,5 +562,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
-
-    

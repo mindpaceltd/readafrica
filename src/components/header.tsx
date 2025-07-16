@@ -1,7 +1,7 @@
 
 'use client';
 
-import { BookHeart, LayoutDashboard, Menu, Gem } from "lucide-react";
+import { BookHeart, LayoutDashboard, Menu, Gem, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MobileNavTrigger } from "./mobile-nav";
@@ -11,18 +11,22 @@ import type { User } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { useCart } from "@/context/cart-context";
+import { Badge } from "./ui/badge";
 
 interface HeaderProps {
   siteTitle?: string | null;
   logoUrl?: string | null;
   user: User | null;
   isAdmin: boolean;
+  userRole: 'reader' | 'publisher';
 }
 
-export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
+export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const { items } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,7 +52,12 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
     router.push('/login');
   }
 
-  const dashboardHref = isAdmin ? '/admin' : '/my-books';
+  let dashboardHref = '/my-books';
+  if (isAdmin) {
+      dashboardHref = '/admin';
+  } else if (userRole === 'publisher') {
+      dashboardHref = '/publisher';
+  }
   
   const navItems = [
       { href: "/books", label: "Books" },
@@ -86,6 +95,13 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
                 <Link href="/subscriptions">
                     <Gem className="mr-2" />
                     Subscribe
+                </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+                <Link href="/cart">
+                    <ShoppingCart />
+                    {items.length > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 justify-center rounded-full">{items.length}</Badge>}
+                    <span className="sr-only">Cart</span>
                 </Link>
             </Button>
            <Button className="text-primary-foreground bg-primary hover:bg-primary/90" onClick={user ? handleLogout : handleLogin}>

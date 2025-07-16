@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/database.types";
 import DOMPurify from "dompurify";
 import { Separator } from "@/components/ui/separator";
+import { useCart } from "@/context/cart-context";
 
 type BookWithCategory = Tables<'books'> & {
     categories: { name: string } | null;
@@ -27,12 +28,15 @@ export default function BookPage() {
   const params = useParams();
   const { toast } = useToast();
   const supabase = createClient();
+  const { addItem, items } = useCart();
 
   const [book, setBook] = useState<BookWithCategory | null>(null);
   const [isPurchased, setIsPurchased] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const isInCart = book ? items.some(item => item.id === book.id) : false;
 
   useEffect(() => {
     const bookId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -90,6 +94,15 @@ export default function BookPage() {
     
     fetchBookAndPurchaseStatus();
   }, [params.id, supabase, toast]);
+
+  const handleAddToCart = () => {
+      if (!book) return;
+      addItem(book);
+      toast({
+          title: "Added to Cart!",
+          description: `"${book.title}" has been added to your cart.`,
+      })
+  }
 
   const handlePurchase = async () => {
     if(!book) return;
@@ -219,9 +232,9 @@ export default function BookPage() {
                 {isPurchasing ? <Hourglass className="mr-2 animate-spin" /> : null}
                 Buy PDF - KES {book.price}
               </Button>
-              <Button size="lg" variant="outline" className="flex-1">
+              <Button size="lg" variant="outline" className="flex-1" onClick={handleAddToCart} disabled={isInCart}>
                 <ShoppingCart className="mr-2" />
-                Add to Cart
+                {isInCart ? "In Cart" : "Add to Cart"}
               </Button>
             </div>
             
