@@ -8,7 +8,7 @@ import { Save, Send, Trash2, Edit } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/lib/database.types";
-import { RichTextEditor } from "@/components/rich-text-editor";
+import { Textarea } from "@/components/ui/textarea";
 
 type Devotional = Tables<'devotionals'>;
 
@@ -66,8 +66,7 @@ export default function ManageDevotionalsPage() {
   };
 
   const handleSubmit = async (status: 'sent' | 'draft') => {
-    // Basic check to see if there's content besides empty HTML tags
-    if (!message.trim() || message.replace(/<[^>]+>/g, '').length === 0) {
+    if (!message.trim()) {
         toast({ title: "Message cannot be empty", variant: "destructive" });
         return;
     }
@@ -105,6 +104,10 @@ export default function ManageDevotionalsPage() {
 
   const drafts = devotionals.filter(d => !d.sent_at);
   const sentDevotionals = devotionals.filter(d => d.sent_at);
+  
+  const createMarkup = (htmlString: string) => {
+    return {__html: htmlString};
+  }
 
   return (
     <div>
@@ -124,7 +127,12 @@ export default function ManageDevotionalsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                           <RichTextEditor value={message} onChange={setMessage} />
+                           <Textarea 
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Type your uplifting message here..."
+                                rows={8}
+                           />
                         </div>
                         <div className="flex justify-end gap-2">
                             {editingDevotional && <Button variant="ghost" onClick={handleCancelEdit}>Cancel</Button>}
@@ -150,10 +158,9 @@ export default function ManageDevotionalsPage() {
                         {!loading && drafts.length === 0 && <p className="text-sm text-muted-foreground">No drafts.</p>}
                         {drafts.map((devotional) => (
                             <div key={devotional.id} className="text-sm border-b pb-2 last:border-b-0">
-                                <div 
-                                    className="text-muted-foreground line-clamp-2" 
-                                    dangerouslySetInnerHTML={{ __html: devotional.message.substring(0, 100) + '...' }} 
-                                />
+                                <p 
+                                    className="text-muted-foreground line-clamp-2"
+                                >{devotional.message.substring(0, 100) + '...'}</p>
                                 <div className="flex gap-2 mt-2">
                                      <Button size="sm" variant="outline" onClick={() => handleEditClick(devotional)}><Edit className="mr-1 h-3 w-3" /> Edit</Button>
                                      <Button size="sm" variant="destructive" onClick={() => handleDelete(devotional.id)}><Trash2 className="mr-1 h-3 w-3" /> Delete</Button>
@@ -171,11 +178,10 @@ export default function ManageDevotionalsPage() {
                         {!loading && sentDevotionals.length === 0 && <p className="text-sm text-muted-foreground">No devotionals sent yet.</p>}
                          {sentDevotionals.map((devotional) => (
                             <div key={devotional.id} className="text-sm border-b pb-2 last:border-b-0">
-                                <p className="text-xs text-muted-foreground">{new Date(devotional.sent_at!).toLocaleString()}</p>
-                                <div 
-                                    className="text-muted-foreground line-clamp-3 mt-1" 
-                                    dangerouslySetInnerHTML={{ __html: devotional.message }} 
-                                />
+                                <p className="text-xs text-muted-foreground">{devotional.sent_at ? new Date(devotional.sent_at).toLocaleString() : ''}</p>
+                                <p 
+                                    className="text-muted-foreground line-clamp-3 mt-1"
+                                >{devotional.message}</p>
                             </div>
                          ))}
                     </CardContent>
