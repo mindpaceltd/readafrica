@@ -206,7 +206,7 @@ export type Database = {
           id: string
           is_admin: boolean
           phone_number: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -215,7 +215,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           phone_number?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -224,7 +224,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           phone_number?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -364,7 +364,20 @@ export type Database = {
     Functions: {
       handle_new_user: {
         Args: Record<PropertyKey, never>
-        Returns: unknown
+        Returns: {
+          id: string
+          aud: string
+          role: string
+          email: string
+          phone: string
+          created_at: string
+          last_sign_in_at: string
+          app_metadata: Json
+          user_metadata: Json
+          identities: Json
+          updated_at: string
+          is_anonymous: boolean
+        }
       }
     }
     Enums: {
@@ -457,4 +470,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
-
