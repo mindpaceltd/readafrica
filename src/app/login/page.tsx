@@ -47,22 +47,25 @@ export default function LoginPage() {
         className: 'bg-green-600 border-green-600 text-white',
     });
 
-    router.refresh();
+    // Small delay to ensure session is propagated
+    setTimeout(async () => {
+        // Fetch profile to determine where to redirect
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin, role')
+            .eq('id', data.user.id)
+            .single();
 
-    // Fetch profile to determine where to redirect
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin, role')
-        .eq('id', data.user.id)
-        .single();
-    
-    if (profile?.is_admin) {
-        router.push('/admin');
-    } else if (profile?.role === 'publisher') {
-        router.push('/publisher');
-    } else {
-        router.push('/my-books');
-    }
+        router.refresh();
+
+        if (profile?.is_admin) {
+            router.push('/admin');
+        } else if (profile?.role === 'publisher') {
+            router.push('/publisher/books');
+        } else {
+            router.push('/my-books');
+        }
+    }, 300); // 300ms delay
 
   };
 
