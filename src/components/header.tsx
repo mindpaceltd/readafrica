@@ -77,7 +77,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
             <BookHeart className="text-primary h-7 w-7 md:h-8 md:w-8 group-hover:text-accent transition-colors" />
           )}
           <h1 className="text-2xl md:text-3xl font-headline text-primary group-hover:text-accent transition-colors">
-            {siteTitle || 'Prophetic Reads'}
+            {siteTitle || 'ReadAfrica'}
           </h1>
         </Link>
         <div className="hidden md:flex items-center gap-2">

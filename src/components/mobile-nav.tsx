@@ -17,7 +17,7 @@ import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useCart } from '@/context/cart-context';
-import { Badge } from './ui/badge';
+import { Badge } from '@/components/ui/badge';
 
 const MobileNavContext = React.createContext<{
   open: boolean;
@@ -91,7 +91,7 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin, userRole }
                <BookHeart className="h-7 w-7 group-hover:text-accent transition-colors" />
             )}
             <span className="text-2xl font-headline group-hover:text-accent transition-colors">
-              {siteTitle || 'Prophetic Reads'}
+              {siteTitle || 'ReadAfrica'}
             </span>
           </Link>
         </SheetTitle>

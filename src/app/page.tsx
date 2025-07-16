@@ -46,15 +46,18 @@ async function getPageData() {
             id: book.id,
             title: book.title,
             description: book.description || '',
-            price: `KES ${book.price}`,
-            thumbnailUrl: book.thumbnail_url || 'https://placehold.co/600x800.png',
-            dataAiHint: book.data_ai_hint || 'book cover',
+            price: book.price,
+            thumbnail_url: book.thumbnail_url || 'https://placehold.co/600x800.png',
+            data_ai_hint: book.data_ai_hint || 'book cover',
             tags: book.tags || [],
+            author: book.author || 'Dr C Wiseman',
+            // @ts-ignore
             category: book.categories?.name || 'Uncategorized',
-            isSubscription: book.is_subscription,
+            is_subscription: book.is_subscription,
             status: book.status as 'published' | 'draft',
-            previewContent: book.preview_content || "No preview available.",
-            fullContent: "Full content is available after purchase.",
+            preview_content: book.preview_content || "No preview available.",
+            bestseller: book.bestseller || false,
+            is_featured: book.is_featured || false,
         })) || [];
     };
 
@@ -67,7 +70,7 @@ async function getPageData() {
 }
 
 export default async function HomePage() {
-  const { settings, featuredBooks, recentBooks, bestsellerBooks } = await getPageData();
+  const { settings, recentBooks, bestsellerBooks } = await getPageData();
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -86,7 +89,7 @@ export default async function HomePage() {
                  <div className="absolute inset-0 bg-primary/70 mix-blend-multiply"></div>
             </div>
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'Prophetic Reads'}</h1>
+            <h1 className="text-4xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to {settings?.site_title || 'ReadAfrica'}</h1>
             <p className="text-base md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
                 {settings?.site_description || 'Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.'}
             </p>

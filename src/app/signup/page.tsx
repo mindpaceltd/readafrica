@@ -94,7 +94,7 @@ export default function SignupPage() {
             Create an Account
           </CardTitle>
           <CardDescription>
-            Join Prophetic Reads to start your journey.
+            Join ReadAfrica to start your journey.
           </CardDescription>
         </CardHeader>
         <CardContent>
