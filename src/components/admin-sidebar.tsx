@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem } from "lucide-react";
+import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -17,6 +17,7 @@ const navItems = [
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/notifications", label: "Notifications", icon: Bell },
     { href: "/admin/settings", label: "Settings", icon: Settings },
+    { href: "/admin/activity-logs", label: "Activity Logs", icon: FileClock },
   ];
 
 export function AdminSidebar() {
@@ -73,7 +74,7 @@ function NavLinks() {
                     href={item.href}
                     className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        pathname.startsWith(item.href) && (item.href !== "/admin" && item.href !== "/admin/books") && "bg-muted text-primary",
+                        pathname.startsWith(item.href) && (item.href !== "/admin" && item.href !== "/admin/books" && item.href !== "/admin/subscriptions" && item.href !== "/admin/devotionals" && item.href !== "/admin/transactions" && item.href !== "/admin/users" && item.href !== "/admin/notifications" && item.href !== "/admin/settings") && "bg-muted text-primary",
                         pathname === item.href && "bg-muted text-primary"
                     )}
                 >
