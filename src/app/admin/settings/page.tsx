@@ -23,6 +23,7 @@ const hslToHex = (h: number, s: number, l: number): string => {
 
 // Helper function to convert hex color to an HSL string
 const hexToHsl = (hex: string): string => {
+    if (!hex || hex.length < 7) return "0 0% 0%";
     let r = parseInt(hex.substring(1, 3), 16) / 255;
     let g = parseInt(hex.substring(3, 5), 16) / 255;
     let b = parseInt(hex.substring(5, 7), 16) / 255;
@@ -64,15 +65,21 @@ export default function SettingsPage() {
 
         if (primaryHsl) {
             const [h, s, l] = primaryHsl.split(' ').map(parseFloat);
-            setPrimaryColor(hslToHex(h, s, l));
+            if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
+              setPrimaryColor(hslToHex(h, s, l));
+            }
         }
         if (accentHsl) {
             const [h, s, l] = accentHsl.split(' ').map(parseFloat);
-            setAccentColor(hslToHex(h, s, l));
+            if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
+              setAccentColor(hslToHex(h, s, l));
+            }
         }
         if (backgroundHsl) {
             const [h, s, l] = backgroundHsl.split(' ').map(parseFloat);
-            setBackgroundColor(hslToHex(h,s,l));
+            if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
+             setBackgroundColor(hslToHex(h,s,l));
+            }
         }
 
     }, []);
