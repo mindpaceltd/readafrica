@@ -16,9 +16,9 @@ type EbookCardProps = {
 
 export function EbookCard({ book }: EbookCardProps) {
   return (
-    <Card className="flex flex-col overflow-hidden transition-transform transform duration-300 ease-in-out hover:-translate-y-2 hover:shadow-2xl bg-card">
+    <Card className="flex flex-col overflow-hidden transition-transform transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-2xl bg-card h-full">
       <CardHeader className="p-0">
-        <div className="relative aspect-[3/4] w-full">
+        <Link href={`/books/${book.id}`} className="block relative aspect-[3/4] w-full">
           <Image
             src={book.thumbnailUrl}
             alt={`Cover of ${book.title}`}
@@ -27,20 +27,20 @@ export function EbookCard({ book }: EbookCardProps) {
             data-ai-hint={book.dataAiHint}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
-        </div>
+        </Link>
       </CardHeader>
-      <CardContent className="flex-1 p-4">
-        <CardTitle className="font-headline text-xl mb-2 text-primary">
-          {book.title}
+      <CardContent className="flex-1 p-3">
+        <CardTitle className="font-headline text-lg mb-1 text-primary leading-tight">
+          <Link href={`/books/${book.id}`} className="hover:underline">{book.title}</Link>
         </CardTitle>
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-xs text-muted-foreground line-clamp-2">
           {book.description}
         </p>
       </CardContent>
-      <CardFooter className="p-4 flex justify-between items-center">
-        <p className="font-bold text-lg text-accent">{book.price}</p>
-        <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-          <Link href={`/books/${book.id}`}>View Details</Link>
+      <CardFooter className="p-3 flex justify-between items-center">
+        <p className="font-bold text-base text-accent">{book.price}</p>
+        <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground text-xs h-8">
+          <Link href={`/books/${book.id}`}>View</Link>
         </Button>
       </CardFooter>
     </Card>
