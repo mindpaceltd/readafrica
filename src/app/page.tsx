@@ -69,11 +69,18 @@ export default async function HomePage() {
             <p className="text-base md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
                 {settings?.site_description || 'Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.'}
             </p>
-            <Button size="lg" asChild>
-                <Link href="/books">
-                    Explore the Book Catalog <ArrowRight className="ml-2"/>
-                </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" asChild>
+                    <Link href="/my-books">
+                        Get Started <ArrowRight className="ml-2"/>
+                    </Link>
+                </Button>
+                 <Button size="lg" asChild variant="secondary">
+                    <Link href="/books">
+                        Browse Books
+                    </Link>
+                </Button>
+            </div>
           </div>
         </section>
 
@@ -85,7 +92,7 @@ export default async function HomePage() {
                 <h2 className="text-3xl md:text-4xl font-headline text-primary text-center mb-8">
                     Featured Books
                 </h2>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
                 {featuredBooks.map((book) => (
                     // @ts-ignore
                     <EbookCard key={book.id} book={book} />
@@ -135,3 +142,4 @@ export default async function HomePage() {
     </div>
   );
 }
+

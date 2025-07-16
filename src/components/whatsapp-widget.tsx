@@ -25,7 +25,9 @@ export function WhatsAppWidget() {
     setIsMounted(true);
   }, []);
 
-  const isVisible = !pathname.startsWith('/admin') && !pathname.startsWith('/login');
+  // In an embedded app context, the widget is generally not needed.
+  // We can also control visibility based on the route.
+  const isVisible = false; // !pathname.startsWith('/admin') && !pathname.startsWith('/login');
 
   if (!isMounted || !isVisible) {
     return null;
@@ -53,3 +55,4 @@ export function WhatsAppWidget() {
     </Link>
   );
 }
+

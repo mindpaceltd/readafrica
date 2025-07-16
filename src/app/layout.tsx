@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { MobileNav, MobileNavContent } from "@/components/mobile-nav";
-import { Header } from "@/components/header";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,32 +43,10 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background text-foreground">
-        <MobileNav>
-            <Header 
-              siteTitle={settings?.site_title} 
-              logoUrl={settings?.logo_url}
-              user={user}
-              isAdmin={profile?.is_admin || false}
-            />
-            <div className="flex flex-col min-h-screen">
-              <main className="flex-1">{children}</main>
-               <footer
-                className="text-center p-6 text-muted-foreground text-sm"
-                suppressHydrationWarning
-              >
-                <p>{settings?.footer_text || `© ${new Date().getFullYear()} Dr. Climate Wiseman. All rights reserved.`}</p>
-              </footer>
-            </div>
-            <MobileNavContent 
-              siteTitle={settings?.site_title} 
-              logoUrl={settings?.logo_url}
-              user={user}
-              isAdmin={profile?.is_admin || false}
-            />
-            <Toaster />
-            <WhatsAppWidget />
-        </MobileNav>
+        <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   );
 }
+
