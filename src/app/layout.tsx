@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { MobileNav, MobileNavContent } from "@/components/mobile-nav";
 import { createClient } from "@/lib/supabase/server";
+import { Header } from "@/components/header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = createClient();
@@ -48,7 +49,21 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background text-foreground" suppressHydrationWarning>
-        <main>{children}</main>
+        <MobileNav>
+          <Header
+            siteTitle={settings?.site_title}
+            logoUrl={settings?.logo_url}
+            user={user}
+            isAdmin={profile?.is_admin || false}
+          />
+          <MobileNavContent
+            siteTitle={settings?.site_title}
+            logoUrl={settings?.logo_url}
+            user={user}
+            isAdmin={profile?.is_admin || false}
+          />
+          <main>{children}</main>
+        </MobileNav>
         <Toaster />
       </body>
     </html>
