@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const title = settings?.site_title || "Prophetic Reads";
   const description = settings?.site_description || "E-books and daily devotionals by Dr. Climate Wiseman.";
-  const iconUrl = settings?.logo_url || '/favicon.ico';
+  const iconUrl = settings?.logo_url || undefined;
 
   return {
     title: title,
@@ -41,7 +41,6 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href={settings?.logo_url || '/favicon.ico'} sizes="any" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
