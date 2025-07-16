@@ -7,6 +7,7 @@ import { BookMarked, LayoutDashboard, History, Bell, User, LogOut, Menu } from "
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { useEffect, useState } from "react";
 
 const navItems = [
     { href: "/my-books", label: "Dashboard", icon: LayoutDashboard },
@@ -17,7 +18,19 @@ const navItems = [
 
 export function UserSidebar() {
     const pathname = usePathname();
-    const isExactDashboard = pathname === "/my-books";
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+    
+    const isExactDashboard = isMounted && pathname === "/my-books";
+
+    const checkActive = (itemHref: string) => {
+        if (!isMounted) return false;
+        if (itemHref === "/my-books") return isExactDashboard;
+        return pathname.startsWith(itemHref);
+    };
 
     return (
         <>
@@ -30,8 +43,7 @@ export function UserSidebar() {
                             href={item.href}
                             className={cn(
                                 "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                                (pathname === item.href && (item.href !== "/my-books" || isExactDashboard)) && "bg-muted text-primary",
-                                (pathname.startsWith(item.href) && item.href !== "/my-books") && "bg-muted text-primary"
+                                checkActive(item.href) && "bg-muted text-primary"
                             )}
                         >
                             <item.icon className="h-4 w-4" />
@@ -63,8 +75,7 @@ export function UserSidebar() {
                                     href={item.href}
                                     className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                                        (pathname === item.href && (item.href !== "/my-books" || isExactDashboard)) && "bg-muted text-primary",
-                                        (pathname.startsWith(item.href) && item.href !== "/my-books") && "bg-muted text-primary"
+                                        checkActive(item.href) && "bg-muted text-primary"
                                     )}
                                 >
                                     <item.icon className="h-5 w-5" />

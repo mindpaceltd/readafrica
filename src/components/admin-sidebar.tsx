@@ -7,6 +7,7 @@ import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Use
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { useState, useEffect } from "react";
 
 const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -68,7 +69,21 @@ export function AdminSidebar() {
 
 function NavLinks() {
     const pathname = usePathname();
-    const isExactDashboard = pathname === "/admin";
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const checkActive = (href: string) => {
+        if (!isMounted) return false;
+        return pathname.startsWith(href) && (href !== '/admin' || pathname === '/admin');
+    }
+
+    const checkSubActive = (href: string) => {
+        if (!isMounted) return false;
+        return pathname.startsWith(href);
+    }
     
     return (
         <>
@@ -78,13 +93,13 @@ function NavLinks() {
                         href={item.href}
                         className={cn(
                             "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                            pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin') ? "bg-muted text-primary" : ""
+                            checkActive(item.href) ? "bg-muted text-primary" : ""
                         )}
                     >
                         <item.icon className="h-4 w-4" />
                         {item.label}
                     </Link>
-                    {item.subItems && pathname.startsWith(item.href) && (
+                    {item.subItems && checkActive(item.href) && (
                          <div className="ml-7 mt-2 space-y-2 border-l pl-4">
                             {item.subItems.map((subItem) => (
                                 <Link
@@ -92,7 +107,7 @@ function NavLinks() {
                                     href={subItem.href}
                                     className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-primary",
-                                        pathname.startsWith(subItem.href) ? "text-primary font-semibold" : ""
+                                        checkSubActive(subItem.href) ? "text-primary font-semibold" : ""
                                     )}
                                 >
                                      <subItem.icon className="h-4 w-4" />
