@@ -48,26 +48,32 @@ export default function LoginPage() {
     });
 
     try {
+      // Immediately fetch profile to get the role
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('is_admin, role')
         .eq('id', data.user.id)
         .single();
       
-      if (profileError) {
-        throw profileError;
+      if (profileError || !profile) {
+        console.error("Error fetching profile, redirecting to default.", profileError);
+        toast({ title: "Could not fetch profile", description: "Redirecting to your dashboard.", variant: "destructive"})
+        window.location.href = '/my-books';
+        return;
       }
-
-      if (profile?.is_admin) {
+      
+      // Full-page reload for dashboard redirection
+      if (profile.is_admin) {
         window.location.href = '/admin';
-      } else if (profile?.role === 'publisher') {
+      } else if (profile.role === 'publisher') {
         window.location.href = '/publisher';
       } else {
         window.location.href = '/my-books';
       }
+
     } catch (err) {
-      console.error("Error fetching profile, redirecting to default.", err);
-      toast({ title: "Could not fetch profile", description: "Redirecting to your dashboard.", variant: "destructive"})
+      console.error("Error during redirection logic:", err);
+      toast({ title: "Redirection Error", description: "Could not determine dashboard, redirecting to default.", variant: "destructive"})
       window.location.href = '/my-books';
     }
   };

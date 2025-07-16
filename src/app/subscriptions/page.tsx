@@ -14,7 +14,7 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, Gem, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { Tables } from "@/lib/database.types";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -66,7 +66,7 @@ export default function SubscriptionsPage() {
                 console.error("Error fetching subscription plans:", error);
                 toast({ title: "Error", description: "Could not load subscription plans.", variant: "destructive" });
             } else {
-                setPlans(data);
+                setPlans(data || []);
             }
             setLoading(false);
         };
@@ -96,7 +96,7 @@ export default function SubscriptionsPage() {
             }
             
             toast({ title: "Purchase Successful!", description: "Your subscription is now active.", className: 'bg-green-600 border-green-600 text-white' });
-            router.push(session.redirectUrl);
+            router.push(session.redirectUrl || '/my-books');
 
         } catch (error) {
             toast({ title: "Subscription Failed", description: (error as Error).message, variant: "destructive" });
