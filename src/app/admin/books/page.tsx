@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { books } from "@/lib/data";
-import { PlusCircle, MoreHorizontal } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Star, FileText, BookLock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
@@ -56,7 +56,7 @@ export default function ManageBooksPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead className="hidden md:table-cell">Total Sales</TableHead>
+                <TableHead className="hidden md:table-cell">Reads</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -75,12 +75,20 @@ export default function ManageBooksPage() {
                       data-ai-hint={book.dataAiHint}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{book.title}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                        {book.title}
+                        {book.isFeatured && <Star className="h-4 w-4 text-yellow-400" />}
+                    </div>
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="outline">Published</Badge>
+                    <Badge variant={book.isSubscription ? "secondary" : "outline"} className="flex items-center gap-1 w-fit">
+                      {book.isSubscription ? <BookLock /> : <FileText />}
+                      <span>{book.isSubscription ? "Subscription" : "Purchase"}</span>
+                    </Badge>
                   </TableCell>
                   <TableCell>{book.price}</TableCell>
-                  <TableCell className="hidden md:table-cell">25</TableCell>
+                  <TableCell className="hidden md:table-cell">{book.readCount}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

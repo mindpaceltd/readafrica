@@ -7,6 +7,10 @@ export type Book = {
   dataAiHint: string;
   previewContent: string;
   fullContent: string;
+  isFeatured?: boolean;
+  isSubscription?: boolean;
+  readCount?: number;
+  tags?: string[];
 };
 
 export const books: Book[] = [
@@ -31,6 +35,10 @@ Once we recognize our inner prison, the key to unlocking the door is forgiveness
 Chapter 3: Walking in Abundance
 
 Freedom is not merely the absence of chains; it is the presence of purpose and abundance. This final chapter guides you on how to step into a life of spiritual richness. It's about aligning your actions with divine will, cultivating a mindset of gratitude, and understanding that true wealth is not measured in currency, but in peace, joy, and impact. You were created for more than just survival; you were created to thrive.`,
+    isFeatured: true,
+    isSubscription: false,
+    readCount: 125,
+    tags: ['freedom', 'faith', 'finance'],
   },
   {
     id: 'divine-pendant-wisdom',
@@ -52,7 +60,11 @@ The first section of this sacred text illuminates the path to recognizing the di
 
 Part II: The Four Gems of Power
 
-The pendant is adorned with four gems, each representing a pillar of spiritual strength: Faith, Hope, Love, and Discernment. This part dedicates a chapter to each gem, exploring its biblical significance and its practical application in your daily walk. You will learn how to polish each one, allowing their divine light to guide your decisions, heal your relationships, and protect you from spiritual harm.`,
+The pendant is adorned with four gems, each representing a pillar of spiritual strength: Faith, Hope, Love, and Discernment. This part dedicates a chapter to each gem, exploring its biblical significance and its practical application in your daily walk. You will learn how to polish each one, allowing their divine light to guide their decisions, heal your relationships, and protect you from spiritual harm.`,
+    isFeatured: false,
+    isSubscription: true,
+    readCount: 78,
+    tags: ['wisdom', 'spirituality', 'guidance'],
   },
   {
     id: 'the-prophetic-voice',
@@ -75,6 +87,10 @@ Hearing God's voice is a skill that can be developed. It requires intentional pr
 Chapter 3: The Responsibility of a Prophetic Word
 
 Receiving a word from the Lord is a sacred trust. What you do with it matters. This chapter provides critical wisdom on interpreting, processing, and delivering a prophetic message. It covers the importance of timing, accountability, and, above all, love. The goal of the prophetic is not to elevate the messenger, but to edify, exhort, and comfort the body of Christ. Learn to be a faithful steward of the mysteries of God.`,
+    isFeatured: false,
+    isSubscription: false,
+    readCount: 212,
+    tags: ['prophecy', 'hearing God', 'ministry'],
   },
 ];
 
