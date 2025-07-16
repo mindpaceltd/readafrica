@@ -27,34 +27,27 @@ const hslToHex = (h: number, s: number, l: number): string => {
 
 // Helper function to convert hex color to an HSL string
 const hexToHsl = (hex: string): string => {
-    if (!hex || !hex.startsWith('#') || hex.length < 4) {
-        return "0 0% 0%";
-    }
+    if (!hex.startsWith('#')) return "0 0% 0%";
 
     let r = 0, g = 0, b = 0;
-    // 3 digits
-    if (hex.length === 4) {
+    if (hex.length === 4) { // #RGB
         r = parseInt(hex[1] + hex[1], 16);
         g = parseInt(hex[2] + hex[2], 16);
         b = parseInt(hex[3] + hex[3], 16);
-    } 
-    // 6 digits
-    else if (hex.length === 7) {
+    } else if (hex.length === 7) { // #RRGGBB
         r = parseInt(hex.substring(1, 3), 16);
         g = parseInt(hex.substring(3, 5), 16);
         b = parseInt(hex.substring(5, 7), 16);
     } else {
-         return "0 0% 0%";
+        return "0 0% 0%";
     }
 
     r /= 255;
     g /= 255;
     b /= 255;
-
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0;
-    let l = (max + min) / 2;
+    let h = 0, s = 0, l = (max + min) / 2;
 
     if (max !== min) {
         const d = max - min;
@@ -79,7 +72,7 @@ export default function SettingsPage() {
 
     const [primaryColor, setPrimaryColor] = useState('#4A148C');
     const [accentColor, setAccentColor] = useState('#5E35B1');
-    const [backgroundColor, setBackgroundColor] = useState('#F3E5F5');
+    const [backgroundColor, setBackgroundColor] = useState('#F3E5F5'); // Updated to a light purple that fits theme
 
     useEffect(() => {
         const root = document.documentElement;
