@@ -66,6 +66,8 @@ export function AdminSidebar() {
 
 function NavLinks() {
     const pathname = usePathname();
+    const isExactDashboard = pathname === "/admin";
+    
     return (
         <>
             {navItems.map((item) => (
@@ -74,8 +76,9 @@ function NavLinks() {
                     href={item.href}
                     className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        pathname.startsWith(item.href) && (item.href !== "/admin" && item.href !== "/admin/books" && item.href !== "/admin/subscriptions" && item.href !== "/admin/devotionals" && item.href !== "/admin/transactions" && item.href !== "/admin/users" && item.href !== "/admin/notifications" && item.href !== "/admin/settings") && "bg-muted text-primary",
-                        pathname === item.href && "bg-muted text-primary"
+                        item.href === "/admin" 
+                            ? (isExactDashboard && "bg-muted text-primary")
+                            : (pathname.startsWith(item.href) && "bg-muted text-primary")
                     )}
                 >
                     <item.icon className="h-4 w-4" />
