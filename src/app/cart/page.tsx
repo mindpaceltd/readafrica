@@ -7,10 +7,77 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import Link from "next/link";
-import { Trash2, ShoppingCart, ArrowLeft, CreditCard } from "lucide-react";
+import { Trash2, ShoppingCart, ArrowLeft, CreditCard, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
+import { processCheckout } from "@/app/actions";
+
 
 export default function CartPage() {
-    const { items, removeItem, getTotalPrice } = useCart();
+    const { items, removeItem, getTotalPrice, clearCart } = useCart();
+    const { toast } = useToast();
+    const router = useRouter();
+    const supabase = createClient();
+    
+    const [user, setUser] = useState<User | null>(null);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        }
+        getUser();
+    }, [supabase]);
+
+
+    const handleCheckout = async () => {
+        if (!user) {
+            toast({
+                title: 'Please log in to continue',
+                description: 'You need to be logged in to complete your purchase.',
+                variant: 'destructive'
+            });
+            router.push('/login');
+            return;
+        }
+
+        setIsCheckingOut(true);
+        toast({
+            title: "Processing Payment",
+            description: "Please check your phone to complete the M-Pesa transaction for the total amount.",
+        });
+
+        // Simulate M-Pesa STK Push delay
+        setTimeout(async () => {
+            try {
+                const result = await processCheckout(items);
+
+                if (result.success) {
+                    toast({
+                        title: 'Checkout Successful!',
+                        description: "Your books have been added to your library.",
+                        className: 'bg-green-600 border-green-600 text-white',
+                    });
+                    clearCart();
+                    router.push('/my-books');
+                } else {
+                    throw new Error(result.error || 'An unknown error occurred.');
+                }
+            } catch (error) {
+                 toast({
+                    title: 'Checkout Failed',
+                    description: (error as Error).message,
+                    variant: 'destructive'
+                });
+            } finally {
+                setIsCheckingOut(false);
+            }
+        }, 3000);
+    };
 
     return (
         <div className="min-h-screen bg-muted/40 py-8 px-4">
@@ -88,9 +155,13 @@ export default function CartPage() {
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button className="w-full">
-                                        <CreditCard className="mr-2 h-4 w-4" />
-                                        Proceed to Checkout
+                                    <Button className="w-full" onClick={handleCheckout} disabled={isCheckingOut}>
+                                        {isCheckingOut ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <CreditCard className="mr-2 h-4 w-4" />
+                                        )}
+                                        {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
                                     </Button>
                                 </CardFooter>
                             </Card>

@@ -96,3 +96,69 @@ export async function duplicateBook(bookId: string) {
 
     return { success: true, data: newBook };
 }
+
+type CartItem = Omit<Tables<'books'>, 'created_at' | 'updated_at'>;
+
+export async function processCheckout(
+  items: CartItem[]
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User is not authenticated.' };
+  }
+
+  if (!items || items.length === 0) {
+    return { success: false, error: 'Cart is empty.' };
+  }
+
+  const transactionsToInsert: TablesInsert<'transactions'>[] = [];
+  const userBooksToInsert: TablesInsert<'user_books'>[] = [];
+
+  for (const item of items) {
+    transactionsToInsert.push({
+      user_id: user.id,
+      book_id: item.id,
+      amount: item.price,
+      status: 'completed',
+      transaction_type: 'purchase',
+      mpesa_code: `SIM${Date.now()}`,
+    });
+
+    userBooksToInsert.push({
+      user_id: user.id,
+      book_id: item.id,
+    });
+  }
+
+  const { error: transactionError } = await supabase
+    .from('transactions')
+    .insert(transactionsToInsert);
+
+  if (transactionError) {
+    console.error('Transaction insert error:', transactionError);
+    return {
+      success: false,
+      error: 'Failed to record one or more transactions.',
+    };
+  }
+
+  const { error: userBookError } = await supabase
+    .from('user_books')
+    .insert(userBooksToInsert);
+
+  if (userBookError) {
+    console.error('User book insert error:', userBookError);
+    // Note: In a real-world scenario, you'd want to handle this more gracefully,
+    // possibly by rolling back the transactions.
+    return {
+      success: false,
+      error: 'Failed to add one or more books to your library.',
+    };
+  }
+
+  return { success: true };
+}
