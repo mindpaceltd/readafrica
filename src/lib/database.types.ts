@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -92,6 +91,8 @@ export type Database = {
       }
       books: {
         Row: {
+          author: string | null
+          bestseller: boolean | null
           category_id: number | null
           created_at: string
           data_ai_hint: string | null
@@ -111,6 +112,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          author?: string | null
+          bestseller?: boolean | null
           category_id?: number | null
           created_at?: string
           data_ai_hint?: string | null
@@ -130,6 +133,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          author?: string | null
+          bestseller?: boolean | null
           category_id?: number | null
           created_at?: string
           data_ai_hint?: string | null
@@ -475,11 +480,7 @@ export type Tables<
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+        Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R

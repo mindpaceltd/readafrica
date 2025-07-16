@@ -1,4 +1,3 @@
-
 // src/components/book-form.tsx
 'use client'
 
@@ -25,7 +24,7 @@ import { Label } from "./ui/label"
 import { Textarea } from "./ui/textarea"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useState, useEffect, useMemo } from "react"
-import { UploadCloud, X, Loader2, FileText } from "lucide-react"
+import { UploadCloud, X, Loader2, FileText, Award } from "lucide-react"
 import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Badge } from "./ui/badge"
@@ -51,10 +50,12 @@ type BookFormProps = {
 
 const initialFormState = {
     title: "",
+    author: "Dr C Wiseman",
     description: "",
     price: 0,
     is_subscription: false,
     is_featured: false,
+    bestseller: false,
     tags: [] as string[],
     category_id: null as number | null,
     status: 'draft' as 'published' | 'draft',
@@ -92,10 +93,12 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
     if (open && book) {
       setFormData({
         title: book.title,
+        author: book.author || "Dr C Wiseman",
         description: book.description || "",
         price: book.price,
         is_subscription: book.is_subscription,
         is_featured: book.is_featured,
+        bestseller: book.bestseller || false,
         tags: book.tags || [],
         category_id: book.category_id,
         status: book.status as 'published' | 'draft',
@@ -202,6 +205,10 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
       <div className="space-y-2">
         <Label htmlFor="title">Book Title</Label>
         <Input id="title" placeholder="e.g., The Prophetic Voice" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="author">Author</Label>
+        <Input id="author" placeholder="e.g., Dr C Wiseman" value={formData.author} onChange={(e) => handleInputChange('author', e.target.value)} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
@@ -341,6 +348,15 @@ export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormPro
                     </p>
                 </div>
                 <Switch checked={formData.is_featured} onCheckedChange={(value) => handleInputChange('is_featured', value)} aria-label="Featured book" />
+            </div>
+             <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                    <h3 className="font-medium">Mark as Bestseller</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Show a bestseller badge on the book.
+                    </p>
+                </div>
+                <Switch checked={formData.bestseller} onCheckedChange={(value) => handleInputChange('bestseller', value)} aria-label="Bestseller book" />
             </div>
         </div>
     </form>

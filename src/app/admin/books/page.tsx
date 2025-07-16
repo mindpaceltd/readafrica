@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban, Copy } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban, Copy, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
@@ -122,9 +122,9 @@ export default function ManageBooksPage() {
                   <span className="sr-only">Image</span>
                 </TableHead>
                 <TableHead>Title</TableHead>
+                <TableHead>Author</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Category</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead className="hidden md:table-cell">Attributes</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -147,11 +147,9 @@ export default function ManageBooksPage() {
                     />
                   </TableCell>
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                        {book.title}
-                        {book.is_featured && <Star className="h-4 w-4 text-yellow-400" />}
-                    </div>
+                    {book.title}
                   </TableCell>
+                  <TableCell>{book.author}</TableCell>
                    <TableCell>
                       <Badge variant={book.status === 'published' ? 'default' : 'secondary'} className={book.status === 'published' ? 'bg-green-600' : ''}>
                           <Circle className={`mr-1 h-2 w-2 ${book.status === 'published' ? 'fill-white' : 'fill-current'}`} />
@@ -160,15 +158,9 @@ export default function ManageBooksPage() {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-2">
-                        <FolderKanban className="h-4 w-4 text-muted-foreground" />
-                        <span>{book.categories?.name || 'Uncategorized'}</span>
+                        {book.is_featured && <Badge variant="outline" className="flex items-center gap-1"><Star className="h-3 w-3" /> Featured</Badge>}
+                        {book.bestseller && <Badge variant="outline" className="flex items-center gap-1 text-yellow-600 border-yellow-500"><Award className="h-3 w-3" /> Bestseller</Badge>}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={book.is_subscription ? "secondary" : "outline"} className="flex items-center gap-1 w-fit">
-                      {book.is_subscription ? <BookLock /> : <FileText />}
-                      <span>{book.is_subscription ? "Subscription" : "Purchase"}</span>
-                    </Badge>
                   </TableCell>
                   <TableCell>KES {book.price}</TableCell>
                   <TableCell>

@@ -65,6 +65,7 @@ export async function duplicateBook(bookId: string) {
         title: `${originalBook.title} (Copy)`,
         status: 'draft', // Always create duplicates as drafts
         is_featured: false, // Don't feature duplicates by default
+        bestseller: false,
     };
 
     // Remove the 'id' if you let the database handle it

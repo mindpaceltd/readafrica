@@ -1,4 +1,4 @@
-
+// src/app/books/[id]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,13 +6,16 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, Hourglass, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, CheckCircle, Hourglass, Lock, Unlock, ShoppingCart, Share2, Award, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/database.types";
 import DOMPurify from "dompurify";
+import { Separator } from "@/components/ui/separator";
 
 type BookWithCategory = Tables<'books'> & {
     categories: { name: string } | null;
@@ -171,20 +174,22 @@ export default function BookPage() {
   }
 
   const sanitizedDescription = book.description ? DOMPurify.sanitize(book.description) : null;
+  const bookTags = ["spiritual warfare", "Motivation", "Prayers", "Spiritual Growth"]; // Placeholder tags
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <Button asChild variant="outline" className="mb-8">
+    <div className="bg-background min-h-screen">
+      <div className="max-w-6xl mx-auto p-4 md:p-8">
+        <Button asChild variant="ghost" className="mb-4 text-muted-foreground">
           <Link href="/books">
             <ArrowLeft className="mr-2" />
-            Back to Catalog
+            Back to all books
           </Link>
         </Button>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-1">
-            <Card className="overflow-hidden md:sticky top-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+          {/* Left Column - Book Cover */}
+          <div className="lg:col-span-1">
+            <Card className="overflow-hidden sticky top-8">
               <div className="relative aspect-[3/4] w-full">
                 <Image
                   src={book.thumbnail_url || 'https://placehold.co/600x800.png'}
@@ -195,67 +200,104 @@ export default function BookPage() {
                    sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
-              <CardContent className="p-4">
-                 <h1 className="text-2xl md:text-3xl font-headline text-primary mb-2">{book.title}</h1>
-                 {sanitizedDescription ? (
-                    <div
-                        className="prose prose-sm dark:prose-invert text-muted-foreground mb-4"
-                        dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
-                    />
-                  ) : (
-                    <p className="text-muted-foreground mb-4 text-sm">No description available.</p>
-                  )}
-                 <p className="text-2xl font-bold text-accent mb-4">KES {book.price}</p>
-                 {canViewFullContent ? (
-                     <div className="flex items-center justify-center w-full p-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-md">
-                        <CheckCircle className="mr-2" />
-                        <span>{isAdmin ? 'Admin Access' : 'Purchased'}</span>
-                    </div>
-                 ) : (
-                    <Button onClick={handlePurchase} disabled={isPurchasing} className="w-full">
-                        {isPurchasing ? <Hourglass className="mr-2 animate-spin" /> : null}
-                        {isPurchasing ? 'Processing...' : 'Buy Now'}
-                    </Button>
-                 )}
-              </CardContent>
             </Card>
           </div>
           
-          <div className="md:col-span-2 space-y-6">
-            <div id="preview">
-                <h2 className="text-xl md:text-2xl font-headline text-accent flex items-center gap-2"><Unlock/> Book Preview</h2>
-                <div className="prose dark:prose-invert mt-4 text-base leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner">
-                    <p>{book.preview_content || "No preview available for this book."}</p>
-                </div>
+          {/* Right Column - Book Info */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                {book.is_featured && <Badge className="bg-primary/10 text-primary border-primary/20">Featured</Badge>}
+                {book.bestseller && <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Bestseller</Badge>}
+              </div>
+              <h1 className="text-3xl lg:text-4xl font-headline text-primary">{book.title}</h1>
+              <p className="text-lg text-muted-foreground">by {book.author || "Dr C Wiseman"}</p>
             </div>
+            
+            <div className="flex items-center gap-4">
+              <Button size="lg" className="flex-1" onClick={handlePurchase} disabled={isPurchasing}>
+                {isPurchasing ? <Hourglass className="mr-2 animate-spin" /> : null}
+                Buy PDF - KES {book.price}
+              </Button>
+              <Button size="lg" variant="outline" className="flex-1">
+                <ShoppingCart className="mr-2" />
+                Add to Cart
+              </Button>
+            </div>
+            
+            <Card className="bg-secondary/20 border-secondary/30">
+              <CardContent className="p-4 text-center">
+                <p className="font-semibold text-secondary-foreground">EPUB Available with Subscription</p>
+                <p className="text-sm text-secondary-foreground/80 mb-3">Get unlimited access to EPUB version and thousands more books</p>
+                <Button variant="secondary" asChild>
+                  <Link href="/subscriptions">Choose Your Plan</Link>
+                </Button>
+              </CardContent>
+            </Card>
 
-            <div id="full-text">
-                <h2 className="text-xl md:text-2xl font-headline text-primary flex items-center gap-2">
-                    {canViewFullContent ? <Unlock className="text-green-500"/> : <Lock className="text-red-500" />} Full Text
-                </h2>
-                <div className="mt-4 bg-card rounded-lg shadow-inner relative aspect-[8.5/11] w-full min-h-[50vh] md:min-h-0">
-                    {!canViewFullContent ? (
-                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                           <div className="text-center p-4">
-                                <Lock className="mx-auto h-10 w-10 md:h-12 md:w-12 text-primary mb-4" />
-                                <p className="font-bold text-sm md:text-base">Purchase this book to unlock the full text.</p>
-                           </div>
-                        </div>
-                    ) : book.full_content_url ? (
-                        <iframe
-                            src={book.full_content_url}
-                            className="w-full h-full border-none rounded-lg"
-                            title={`Full text of ${book.title}`}
-                        />
-                    ) : (
-                         <div className="absolute inset-0 flex items-center justify-center z-10 rounded-lg bg-card">
-                           <div className="text-center p-4">
-                                <p className="font-bold text-sm md:text-base text-muted-foreground">Full content not available yet.</p>
-                           </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+            <Button variant="ghost" className="w-full text-muted-foreground">
+              <Share2 className="mr-2" />
+              Share
+            </Button>
+            
+            <Tabs defaultValue="description">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="description">Description</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              </TabsList>
+              <TabsContent value="description" className="py-4">
+                {sanitizedDescription ? (
+                  <div
+                      className="prose dark:prose-invert max-w-none text-foreground"
+                      dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+                  />
+                ) : (
+                  <p className="text-muted-foreground">No description available.</p>
+                )}
+              </TabsContent>
+              <TabsContent value="details" className="py-4">
+                 <div className="space-y-4">
+                   <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-semibold text-foreground">Author:</p>
+                        <p className="text-muted-foreground">{book.author || "Dr C Wiseman"}</p>
+                      </div>
+                       <div>
+                        <p className="font-semibold text-foreground">Category:</p>
+                        <p className="text-muted-foreground">{book.categories?.name || 'Uncategorized'}</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">Pages:</p>
+                        <p className="text-muted-foreground">210</p>
+                      </div>
+                       <div>
+                        <p className="font-semibold text-foreground">File Size:</p>
+                        <p className="text-muted-foreground">3.0 MB</p>
+                      </div>
+                       <div>
+                        <p className="font-semibold text-foreground">Format:</p>
+                        <p className="text-muted-foreground">PDF & EPUB</p>
+                      </div>
+                   </div>
+                   <div>
+                     <p className="font-semibold text-foreground mb-2">Tags:</p>
+                     <div className="flex flex-wrap gap-2">
+                      {book.tags?.map(tag => (
+                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                      ))}
+                      {!book.tags?.length && bookTags.map(tag => (
+                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                      ))}
+                     </div>
+                   </div>
+                 </div>
+              </TabsContent>
+              <TabsContent value="reviews" className="py-4">
+                <p className="text-muted-foreground">No reviews yet.</p>
+              </TabsContent>
+            </Tabs>
+
           </div>
         </div>
       </div>
@@ -265,30 +307,36 @@ export default function BookPage() {
 
 function BookPageSkeleton() {
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-pulse">
-            <Skeleton className="h-10 w-36 mb-8" />
-            <div className="grid md:grid-cols-3 gap-8">
-                <div className="md:col-span-1 space-y-4">
-                    <Skeleton className="aspect-[3/4] w-full" />
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-8 w-1/2" />
-                    <Skeleton className="h-12 w-full" />
+        <div className="max-w-6xl mx-auto p-4 md:p-8 animate-pulse">
+            <Skeleton className="h-10 w-48 mb-4" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+              <div className="lg:col-span-1">
+                <Skeleton className="aspect-[3/4] w-full rounded-lg" />
+              </div>
+              <div className="md:col-span-1 lg:col-span-2 space-y-6">
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
                 </div>
-                <div className="md:col-span-2 space-y-8">
-                     <div>
-                        <Skeleton className="h-8 w-40 mb-4" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-6 w-full" />
-                            <Skeleton className="h-6 w-full" />
-                            <Skeleton className="h-6 w-5/6" />
-                        </div>
-                     </div>
-                     <div>
-                        <Skeleton className="h-8 w-40 mb-4" />
-                        <Skeleton className="aspect-[8.5/11] w-full" />
-                     </div>
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-6 w-1/2" />
+                <div className="flex gap-4">
+                  <Skeleton className="h-12 flex-1" />
+                  <Skeleton className="h-12 flex-1" />
                 </div>
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+                 <div className="space-y-4">
+                    <div className="flex gap-1 border-b">
+                      <Skeleton className="h-10 w-1/3" />
+                      <Skeleton className="h-10 w-1/3" />
+                      <Skeleton className="h-10 w-1/3" />
+                    </div>
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-5/6" />
+                 </div>
+              </div>
             </div>
         </div>
     )
