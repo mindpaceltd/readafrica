@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { books, type Book } from "@/lib/data";
-import { PlusCircle, MoreHorizontal, Star, FileText, BookLock } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
@@ -73,6 +73,7 @@ export default function ManageBooksPage() {
                 </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead className="hidden md:table-cell">Reads</TableHead>
                 <TableHead>
@@ -98,6 +99,12 @@ export default function ManageBooksPage() {
                         {book.title}
                         {book.isFeatured && <Star className="h-4 w-4 text-yellow-400" />}
                     </div>
+                  </TableCell>
+                   <TableCell>
+                      <Badge variant={book.status === 'published' ? 'default' : 'secondary'} className={book.status === 'published' ? 'bg-green-600' : ''}>
+                          <Circle className={`mr-1 h-2 w-2 ${book.status === 'published' ? 'fill-white' : 'fill-current'}`} />
+                          {book.status === 'published' ? 'Published' : 'Draft'}
+                      </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={book.isSubscription ? "secondary" : "outline"} className="flex items-center gap-1 w-fit">

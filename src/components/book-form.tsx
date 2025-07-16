@@ -29,6 +29,7 @@ import { UploadCloud, X } from "lucide-react"
 import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Badge } from "./ui/badge"
+import { Separator } from "./ui/separator"
 
 type BookFormProps = {
   open: boolean;
@@ -43,6 +44,9 @@ const initialFormState = {
     purchaseType: "purchase",
     isFeatured: false,
     tags: [] as string[],
+    status: 'draft' as 'published' | 'draft',
+    seoTitle: "",
+    seoDescription: "",
 }
 
 export function BookForm({ open, onOpenChange, book }: BookFormProps) {
@@ -59,9 +63,12 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
         purchaseType: book.isSubscription ? 'subscription' : 'purchase',
         isFeatured: book.isFeatured || false,
         tags: book.tags || [],
+        status: book.status || 'draft',
+        seoTitle: book.seoTitle || '',
+        seoDescription: book.seoDescription || '',
       });
-    } else if (open) {
-      // Reset form when adding a new book
+    } else {
+      // Reset form when adding a new book, or when closing the dialog
       setFormData(initialFormState);
     }
   }, [book, open]);
@@ -95,7 +102,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   }
 
   const formContent = (
-    <form id="book-form" onSubmit={handleFormSubmit} className="space-y-4">
+    <form id="book-form" onSubmit={handleFormSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="title">Book Title</Label>
         <Input id="title" placeholder="e.g., The Prophetic Voice" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)} required />
@@ -123,55 +130,92 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
           </RadioGroup>
         </div>
       </div>
-       <div className="space-y-2">
-        <Label htmlFor="tags">SEO Tags</Label>
-        <div className="flex flex-wrap gap-2 p-2 border rounded-md">
-            {formData.tags.map(tag => (
-                <Badge key={tag} variant="secondary">
-                    {tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
-                        <X className="h-3 w-3" />
-                    </button>
-                </Badge>
-            ))}
-            <Input 
-                id="tags" 
-                placeholder="Add tags..." 
-                className="flex-1 border-none shadow-none focus-visible:ring-0 h-auto p-0"
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyDown={handleTagKeyDown}
-            />
+        <div className="space-y-2">
+        <Label>Cover & Content</Label>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center justify-center w-full">
+                <label htmlFor="cover-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                    <div className="flex flex-col items-center justify-center text-center">
+                        <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground"/>
+                        <p className="text-sm text-muted-foreground"><span className="font-semibold">Upload Cover</span></p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG</p>
+                    </div>
+                    <Input id="cover-upload" type="file" className="hidden" />
+                </label>
+            </div> 
+            <div className="flex items-center justify-center w-full">
+                <label htmlFor="content-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                    <div className="flex flex-col items-center justify-center text-center">
+                        <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground"/>
+                        <p className="text-sm text-muted-foreground"><span className="font-semibold">Upload Content</span></p>
+                        <p className="text-xs text-muted-foreground">PDF, EPUB</p>
+                    </div>
+                    <Input id="content-upload" type="file" className="hidden" />
+                </label>
+            </div> 
         </div>
-        <p className="text-xs text-muted-foreground">Press Enter or comma to add a tag.</p>
-       </div>
-       <div className="flex items-center justify-between rounded-lg border p-3">
-            <div>
-                <h3 className="font-medium">Featured Book</h3>
-                <p className="text-sm text-muted-foreground">
-                    Display this book prominently on the home page.
-                </p>
-            </div>
-            <Switch checked={formData.isFeatured} onCheckedChange={(value) => handleInputChange('isFeatured', value)} aria-label="Featured book" />
-        </div>
-       <div className="space-y-2">
-        <Label>Book Cover</Label>
-        <div className="flex items-center justify-center w-full">
-            <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <UploadCloud className="w-8 h-8 mb-4 text-muted-foreground"/>
-                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG or WEBP (MAX. 800x400px)</p>
-                </div>
-                <Input id="dropzone-file" type="file" className="hidden" />
-            </label>
-        </div> 
       </div>
-       <div className="space-y-2">
-        <Label>Book File (PDF, EPUB)</Label>
-        <Input type="file" />
-        <p className="text-xs text-muted-foreground">This file will be available for download to users who purchase it.</p>
-       </div>
+      <Separator />
+        <div className="space-y-4">
+             <h3 className="text-lg font-medium">SEO & Discovery</h3>
+             <div className="space-y-2">
+                <Label htmlFor="seo-title">SEO Title</Label>
+                <Input id="seo-title" placeholder="A catchy title for search engines" value={formData.seoTitle} onChange={(e) => handleInputChange('seoTitle', e.target.value)} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="seo-description">SEO Description</Label>
+                <Textarea id="seo-description" placeholder="A brief description for search results" rows={2} value={formData.seoDescription} onChange={(e) => handleInputChange('seoDescription', e.target.value)} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="tags">Tags</Label>
+                <div className="flex flex-wrap gap-2 p-2 border rounded-md">
+                    {formData.tags.map(tag => (
+                        <Badge key={tag} variant="secondary">
+                            {tag}
+                            <button type="button" onClick={() => removeTag(tag)} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+                    <Input 
+                        id="tags" 
+                        placeholder="Add tags..." 
+                        className="flex-1 border-none shadow-none focus-visible:ring-0 h-auto p-0"
+                        value={currentTag}
+                        onChange={(e) => setCurrentTag(e.target.value)}
+                        onKeyDown={handleTagKeyDown}
+                    />
+                </div>
+                <p className="text-xs text-muted-foreground">Press Enter or comma to add a tag.</p>
+             </div>
+        </div>
+
+       <Separator />
+        <div className="space-y-4">
+             <h3 className="text-lg font-medium">Status & Visibility</h3>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                    <h3 className="font-medium">Publish Status</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Set whether the book is a draft or publicly available.
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="status-switch" className={formData.status === 'draft' ? 'text-muted-foreground' : ''}>Draft</Label>
+                    <Switch id="status-switch" checked={formData.status === 'published'} onCheckedChange={(checked) => handleInputChange('status', checked ? 'published' : 'draft')} aria-label="Publish status" />
+                     <Label htmlFor="status-switch" className={formData.status === 'published' ? '' : 'text-muted-foreground'}>Published</Label>
+                </div>
+            </div>
+           <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                    <h3 className="font-medium">Featured Book</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Display this book prominently on the home page.
+                    </p>
+                </div>
+                <Switch checked={formData.isFeatured} onCheckedChange={(value) => handleInputChange('isFeatured', value)} aria-label="Featured book" />
+            </div>
+        </div>
     </form>
   );
 
@@ -185,7 +229,9 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
               Fill in the details below. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          {formContent}
+          <div className="max-h-[70vh] overflow-y-auto pr-4">
+            {formContent}
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
@@ -204,7 +250,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
             Fill in the details below. Click save when you're done.
           </DrawerDescription>
         </DrawerHeader>
-        <div className="p-4">{formContent}</div>
+        <div className="p-4 max-h-[70vh] overflow-y-auto">{formContent}</div>
         <DrawerFooter className="pt-2">
             <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
             <DrawerClose asChild>

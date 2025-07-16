@@ -11,6 +11,9 @@ export type Book = {
   isSubscription?: boolean;
   readCount?: number;
   tags?: string[];
+  status: 'published' | 'draft';
+  seoTitle?: string;
+  seoDescription?: string;
 };
 
 export const books: Book[] = [
@@ -39,6 +42,7 @@ Freedom is not merely the absence of chains; it is the presence of purpose and a
     isSubscription: false,
     readCount: 125,
     tags: ['freedom', 'faith', 'finance'],
+    status: 'published',
   },
   {
     id: 'divine-pendant-wisdom',
@@ -65,6 +69,7 @@ The pendant is adorned with four gems, each representing a pillar of spiritual s
     isSubscription: true,
     readCount: 78,
     tags: ['wisdom', 'spirituality', 'guidance'],
+    status: 'published',
   },
   {
     id: 'the-prophetic-voice',
@@ -91,6 +96,7 @@ Receiving a word from the Lord is a sacred trust. What you do with it matters. T
     isSubscription: false,
     readCount: 212,
     tags: ['prophecy', 'hearing God', 'ministry'],
+    status: 'draft',
   },
 ];
 
