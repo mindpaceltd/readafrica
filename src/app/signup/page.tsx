@@ -44,6 +44,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
+        emailRedirectTo: `${location.origin}/auth/callback`,
         data: {
             full_name: fullName,
             role: selectedRole
@@ -61,26 +62,20 @@ export default function SignupPage() {
         return;
     }
 
-    if(data.user && data.user.identities && data.user.identities.length === 0) {
-        toast({
-            title: "Sign Up Error",
-            description: "A user with this email already exists but is unconfirmed. Please check your email to confirm your account.",
-            variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-    }
-
+    // Since email confirmation is disabled on the Supabase project settings,
+    // the user is automatically logged in. We can redirect them.
     toast({
-        title: "Check your email!",
-        description: "We've sent a confirmation link to your email address.",
+        title: "Sign Up Successful!",
+        description: "Redirecting to your dashboard...",
         className: 'bg-green-600 border-green-600 text-white',
     });
 
-    // Don't redirect immediately, user needs to confirm email first.
-    // They will be redirected from the confirmation link.
-    setIsSubmitting(false);
-    router.push('/login');
+    if (selectedRole === 'publisher') {
+        router.push('/publisher');
+    } else {
+        router.push('/my-books');
+    }
+    router.refresh();
   };
 
   return (
@@ -205,3 +200,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+    
