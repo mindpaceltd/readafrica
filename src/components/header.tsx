@@ -1,14 +1,14 @@
 
 'use client';
 
-import { BookHeart, LayoutDashboard, Menu } from "lucide-react";
+import { BookHeart, LayoutDashboard, Menu, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MobileNavTrigger } from "./mobile-nav";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
@@ -21,6 +21,7 @@ interface HeaderProps {
 
 export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,6 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
     };
     window.addEventListener('scroll', handleScroll);
     
-    // Set initial state
     handleScroll();
 
     return () => {
@@ -49,6 +49,13 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
   }
 
   const dashboardHref = isAdmin ? '/admin' : '/my-books';
+  
+  const navItems = [
+      { href: "/books", label: "Books" },
+      { href: "/subscriptions", label: "Subscriptions" },
+      { href: "/devotionals", label: "Devotionals" },
+      { href: "/volunteer", label: "Volunteer" },
+  ]
 
   return (
     <header className={cn(
@@ -67,17 +74,13 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
           </h1>
         </Link>
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" className="hover:text-primary" asChild>
-             <Link href="/books">Books</Link>
-          </Button>
-           <Button variant="ghost" className="hover:text-primary" asChild>
-             <Link href="/devotionals">Devotionals</Link>
-          </Button>
-           <Button variant="ghost" className="hover:text-primary" asChild>
-             <Link href="/volunteer">Volunteer</Link>
-          </Button>
+            {navItems.map((item) => (
+                 <Button key={item.href} variant="ghost" asChild className={cn("hover:text-primary", pathname === item.href ? 'text-primary font-semibold' : '')}>
+                    <Link href={item.href}>{item.label}</Link>
+                </Button>
+            ))}
           {user && (
-            <Button variant="ghost" className="hover:text-primary" asChild>
+            <Button variant="ghost" className={cn("hover:text-primary", pathname.startsWith(dashboardHref) ? 'text-primary font-semibold' : '')} asChild>
                 <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}

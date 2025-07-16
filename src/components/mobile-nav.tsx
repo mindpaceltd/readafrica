@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookHeart, Info, Mail, BookOpen, LogIn, LogOut, Sparkles, Handshake, LayoutDashboard } from 'lucide-react';
+import { BookHeart, Info, Mail, BookOpen, LogIn, LogOut, Sparkles, Handshake, LayoutDashboard, Gem } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
@@ -89,6 +89,7 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNa
       <nav className="flex flex-col space-y-2 flex-1">
          <NavLink href="/books"><BookOpen/>Books</NavLink>
          {user && <NavLink href={dashboardHref}><LayoutDashboard/>Dashboard</NavLink>}
+         <NavLink href="/subscriptions"><Gem />Subscriptions</NavLink>
          <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
       </nav>
