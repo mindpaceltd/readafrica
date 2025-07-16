@@ -42,6 +42,54 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          accent_color: string | null
+          allow_registrations: boolean
+          background_color: string | null
+          footer_text: string | null
+          id: number
+          logo_url: string | null
+          maintenance_mode: boolean
+          mpesa_consumer_key: string | null
+          mpesa_consumer_secret: string | null
+          mpesa_passkey: string | null
+          primary_color: string | null
+          site_description: string | null
+          site_title: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          allow_registrations?: boolean
+          background_color?: string | null
+          footer_text?: string | null
+          id?: number
+          logo_url?: string | null
+          maintenance_mode?: boolean
+          mpesa_consumer_key?: string | null
+          mpesa_consumer_secret?: string | null
+          mpesa_passkey?: string | null
+          primary_color?: string | null
+          site_description?: string | null
+          site_title?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          allow_registrations?: boolean
+          background_color?: string | null
+          footer_text?: string | null
+          id?: number
+          logo_url?: string | null
+          maintenance_mode?: boolean
+          mpesa_consumer_key?: string | null
+          mpesa_consumer_secret?: string | null
+          mpesa_passkey?: string | null
+          primary_color?: string | null
+          site_description?: string | null
+          site_title?: string | null
+        }
+        Relationships: []
+      }
       books: {
         Row: {
           category_id: number | null
@@ -470,3 +518,5 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
+
+    
