@@ -31,10 +31,10 @@ export default function MyBooksPage() {
   if (isLoading) {
     return (
       <div className="max-w-5xl mx-auto p-4 md:p-8">
-        <h1 className="text-3xl md:text-4xl font-headline text-primary mb-6">My Account</h1>
+        <h1 className="text-3xl md:text-4xl font-headline text-primary mb-6">Welcome, Brayan 👋</h1>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-                <h2 className="text-2xl font-headline text-primary mb-4">My Books</h2>
+                <h2 className="text-2xl font-headline text-primary mb-4">My Library</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                     {[...Array(2)].map((_, i) => (
                         <Card key={i} className="animate-pulse">
@@ -67,12 +67,12 @@ export default function MyBooksPage() {
 
   return (
     <div className="min-h-screen bg-background">
-       <main className="max-w-5xl mx-auto p-4 md:p-8">
-        <h1 className="text-3xl md:text-4xl font-headline text-primary mb-8">My Account</h1>
+       <main>
+        <h1 className="text-3xl md:text-4xl font-headline text-primary mb-8">Welcome, Brayan 👋</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
             <div className="md:col-span-2">
-                <h2 className="text-2xl font-headline text-primary mb-4">My Books</h2>
+                <h2 className="text-2xl font-headline text-primary mb-4">My Library</h2>
                 {purchasedBooks.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                     {purchasedBooks.map((book) => (
