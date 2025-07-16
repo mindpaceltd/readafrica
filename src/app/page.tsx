@@ -57,7 +57,7 @@ export default async function HomePage() {
                     alt="Inspirational background"
                     fill
                     className="object-cover"
-                    data-ai-hint="sky clouds"
+                    data-ai-hint="inspirational landscape"
                     priority
                  />
                  <div className="absolute inset-0 bg-primary/70 mix-blend-multiply"></div>
