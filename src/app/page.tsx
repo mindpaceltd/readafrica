@@ -1,4 +1,4 @@
-import { Header } from "@/components/header";
+
 import { EbookCard } from "@/components/ebook-card";
 import { DevotionalCard } from "@/components/devotional-card";
 import { books } from "@/lib/data";
@@ -6,7 +6,6 @@ import { books } from "@/lib/data";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
       <main className="flex-1 p-4 md:p-8">
         <div className="max-w-5xl mx-auto space-y-12">
           <DevotionalCard />

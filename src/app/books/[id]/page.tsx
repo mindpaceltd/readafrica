@@ -87,7 +87,7 @@ export default function BookPage() {
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
-            <Card className="overflow-hidden sticky top-8">
+            <Card className="overflow-hidden md:sticky top-8">
               <div className="relative aspect-[3/4] w-full">
                 <Image
                   src={book.thumbnailUrl}
@@ -99,8 +99,8 @@ export default function BookPage() {
                 />
               </div>
               <CardContent className="p-4">
-                 <h1 className="text-3xl font-headline text-primary mb-2">{book.title}</h1>
-                 <p className="text-muted-foreground mb-4">{book.description}</p>
+                 <h1 className="text-2xl md:text-3xl font-headline text-primary mb-2">{book.title}</h1>
+                 <p className="text-muted-foreground mb-4 text-sm md:text-base">{book.description}</p>
                  <p className="text-2xl font-bold text-accent mb-4">{book.price}</p>
                  {isPurchased ? (
                      <div className="flex items-center justify-center w-full p-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-md">
@@ -119,22 +119,22 @@ export default function BookPage() {
           
           <div className="md:col-span-2 space-y-6">
             <div id="preview">
-                <h2 className="text-2xl font-headline text-accent flex items-center gap-2"><Unlock/> Book Preview</h2>
-                <div className="prose dark:prose-invert mt-4 text-lg leading-relaxed whitespace-pre-line p-6 bg-card rounded-lg shadow-inner">
+                <h2 className="text-xl md:text-2xl font-headline text-accent flex items-center gap-2"><Unlock/> Book Preview</h2>
+                <div className="prose dark:prose-invert mt-4 text-base md:text-lg leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner">
                     <p>{book.previewContent}</p>
                 </div>
             </div>
 
             <div id="full-text">
-                <h2 className="text-2xl font-headline text-primary flex items-center gap-2">
+                <h2 className="text-xl md:text-2xl font-headline text-primary flex items-center gap-2">
                     {isPurchased ? <Unlock className="text-green-500"/> : <Lock className="text-red-500" />} Full Text
                 </h2>
-                <div className="prose dark:prose-invert mt-4 text-lg leading-relaxed whitespace-pre-line p-6 bg-card rounded-lg shadow-inner relative">
+                <div className="prose dark:prose-invert mt-4 text-base md:text-lg leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner relative">
                     {!isPurchased && (
                         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
                            <div className="text-center p-4">
-                                <Lock className="mx-auto h-12 w-12 text-primary mb-4" />
-                                <p className="font-bold">Purchase this book to unlock the full text.</p>
+                                <Lock className="mx-auto h-10 w-10 md:h-12 md:w-12 text-primary mb-4" />
+                                <p className="font-bold text-sm md:text-base">Purchase this book to unlock the full text.</p>
                            </div>
                         </div>
                     )}
@@ -151,7 +151,7 @@ export default function BookPage() {
 function BookPageSkeleton() {
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 animate-pulse">
-            <Skeleton className="h-10 w-48 mb-8" />
+            <Skeleton className="h-10 w-36 md:w-48 mb-8" />
             <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-1 space-y-4">
                     <Skeleton className="aspect-[3/4] w-full" />
@@ -161,13 +161,13 @@ function BookPageSkeleton() {
                     <Skeleton className="h-12 w-full" />
                 </div>
                 <div className="md:col-span-2 space-y-6">
-                     <Skeleton className="h-8 w-40" />
+                     <Skeleton className="h-8 w-32 md:w-40" />
                      <div className="space-y-2">
                         <Skeleton className="h-6 w-full" />
                         <Skeleton className="h-6 w-full" />
                         <Skeleton className="h-6 w-5/6" />
                      </div>
-                     <Skeleton className="h-8 w-40" />
+                     <Skeleton className="h-8 w-32 md:w-40" />
                      <div className="space-y-2">
                         <Skeleton className="h-6 w-full" />
                         <Skeleton className="h-6 w-full" />
