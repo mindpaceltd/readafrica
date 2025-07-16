@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, MessageSquare, Calendar, Send, Save, Trash2, Edit } from "lucide-react";
+import { Save, Send, Trash2, Edit } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/lib/database.types";
@@ -19,7 +19,7 @@ export default function ManageDevotionalsPage() {
   const [devotionals, setDevotionals] = useState<Devotional[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEditing, setIsEditing] = useState<Devotional | null>(null);
+  const [editingDevotional, setEditingDevotional] = useState<Devotional | null>(null);
 
   const [message, setMessage] = useState('');
   
@@ -43,13 +43,13 @@ export default function ManageDevotionalsPage() {
   }, []);
 
   const handleEditClick = (devotional: Devotional) => {
-    setIsEditing(devotional);
+    setEditingDevotional(devotional);
     setMessage(devotional.message);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
   const handleCancelEdit = () => {
-    setIsEditing(null);
+    setEditingDevotional(null);
     setMessage('');
   };
 
@@ -66,7 +66,8 @@ export default function ManageDevotionalsPage() {
   };
 
   const handleSubmit = async (status: 'sent' | 'draft') => {
-    if (!message.trim()) {
+    // Basic check to see if there's content besides empty HTML tags
+    if (!message.trim() || message.replace(/<[^>]+>/g, '').length === 0) {
         toast({ title: "Message cannot be empty", variant: "destructive" });
         return;
     }
@@ -81,8 +82,8 @@ export default function ManageDevotionalsPage() {
     };
 
     let error;
-    if (isEditing) {
-        const { error: updateError } = await supabase.from('devotionals').update(devotionalData).eq('id', isEditing.id);
+    if (editingDevotional) {
+        const { error: updateError } = await supabase.from('devotionals').update(devotionalData).eq('id', editingDevotional.id);
         error = updateError;
     } else {
         const { error: insertError } = await supabase.from('devotionals').insert(devotionalData);
@@ -93,17 +94,17 @@ export default function ManageDevotionalsPage() {
     if (error) {
         toast({ title: "Error saving devotional", description: error.message, variant: "destructive" });
     } else {
-        toast({ title: `Devotional ${isEditing ? 'updated' : 'created'} successfully!` });
+        toast({ title: `Devotional ${editingDevotional ? 'updated' : 'created'} successfully!` });
         setMessage('');
-        setIsEditing(null);
+        setEditingDevotional(null);
         fetchDevotionals();
     }
 
     setIsSubmitting(false);
   }
 
-  const recentDevotionals = devotionals.filter(d => d.sent_at).slice(0, 5);
-  const draftedDevotionals = devotionals.filter(d => !d.sent_at);
+  const drafts = devotionals.filter(d => !d.sent_at);
+  const sentDevotionals = devotionals.filter(d => d.sent_at);
 
   return (
     <div>
@@ -112,13 +113,13 @@ export default function ManageDevotionalsPage() {
             <p className="text-muted-foreground">Create, schedule, and view devotionals.</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 items-start">
-            <div className="md:col-span-2">
+        <div className="grid lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>{isEditing ? 'Edit Devotional' : 'Create New Devotional'}</CardTitle>
+                        <CardTitle>{editingDevotional ? 'Edit Devotional' : 'Create New Devotional'}</CardTitle>
                         <CardDescription>
-                            {isEditing ? 'Update the message below.' : 'Write your message below. It can be sent immediately or saved as a draft.'}
+                            {editingDevotional ? 'Update the message below.' : 'Write your message below. It can be sent immediately or saved as a draft.'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -126,32 +127,32 @@ export default function ManageDevotionalsPage() {
                            <RichTextEditor value={message} onChange={setMessage} />
                         </div>
                         <div className="flex justify-end gap-2">
-                            {isEditing && <Button variant="ghost" onClick={handleCancelEdit}>Cancel</Button>}
+                            {editingDevotional && <Button variant="ghost" onClick={handleCancelEdit}>Cancel</Button>}
                             <Button variant="outline" onClick={() => handleSubmit('draft')} disabled={isSubmitting}>
                                 <Save className="mr-2" />
-                                {isEditing ? 'Save Changes' : 'Save as Draft'}
+                                {editingDevotional ? 'Save Changes' : 'Save as Draft'}
                             </Button>
                             <Button onClick={() => handleSubmit('sent')} disabled={isSubmitting}>
                                 <Send className="mr-2" />
-                                {isEditing ? 'Update & Send' : 'Send Now'}
+                                {editingDevotional ? 'Update & Send' : 'Send Now'}
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            <div className="md:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Drafts</CardTitle>
+                        <CardTitle>Drafts ({drafts.length})</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 max-h-64 overflow-y-auto">
                         {loading && <p>Loading drafts...</p>}
-                        {!loading && draftedDevotionals.length === 0 && <p className="text-sm text-muted-foreground">No drafts.</p>}
-                        {draftedDevotionals.map((devotional) => (
+                        {!loading && drafts.length === 0 && <p className="text-sm text-muted-foreground">No drafts.</p>}
+                        {drafts.map((devotional) => (
                             <div key={devotional.id} className="text-sm border-b pb-2 last:border-b-0">
                                 <div 
                                     className="text-muted-foreground line-clamp-2" 
-                                    dangerouslySetInnerHTML={{ __html: devotional.message.replace(/<[^>]+>/g, ' ').substring(0, 100) + '...' }} 
+                                    dangerouslySetInnerHTML={{ __html: devotional.message.substring(0, 100) + '...' }} 
                                 />
                                 <div className="flex gap-2 mt-2">
                                      <Button size="sm" variant="outline" onClick={() => handleEditClick(devotional)}><Edit className="mr-1 h-3 w-3" /> Edit</Button>
@@ -163,16 +164,16 @@ export default function ManageDevotionalsPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Recent Devotionals</CardTitle>
+                        <CardTitle>Sent Devotionals ({sentDevotionals.length})</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        {loading && <p>Loading recent...</p>}
-                        {!loading && recentDevotionals.length === 0 && <p className="text-sm text-muted-foreground">No recent devotionals sent.</p>}
-                         {recentDevotionals.map((devotional) => (
-                            <div key={devotional.id} className="flex items-start gap-4 text-sm">
-                                <MessageSquare className="h-5 w-5 mt-1 flex-shrink-0 text-primary"/>
+                    <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+                        {loading && <p>Loading sent devotionals...</p>}
+                        {!loading && sentDevotionals.length === 0 && <p className="text-sm text-muted-foreground">No devotionals sent yet.</p>}
+                         {sentDevotionals.map((devotional) => (
+                            <div key={devotional.id} className="text-sm border-b pb-2 last:border-b-0">
+                                <p className="text-xs text-muted-foreground">{new Date(devotional.sent_at!).toLocaleString()}</p>
                                 <div 
-                                    className="text-muted-foreground line-clamp-3" 
+                                    className="text-muted-foreground line-clamp-3 mt-1" 
                                     dangerouslySetInnerHTML={{ __html: devotional.message }} 
                                 />
                             </div>
