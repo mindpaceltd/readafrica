@@ -30,6 +30,7 @@ import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Badge } from "./ui/badge"
 import { Separator } from "./ui/separator"
+import { ScrollArea } from "./ui/scroll-area"
 
 type BookFormProps = {
   open: boolean;
@@ -102,7 +103,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   }
 
   const formContent = (
-    <form id="book-form" onSubmit={handleFormSubmit} className="space-y-6">
+    <form id="book-form" onSubmit={handleFormSubmit} className="space-y-6 px-1">
       <div className="space-y-2">
         <Label htmlFor="title">Book Title</Label>
         <Input id="title" placeholder="e.g., The Prophetic Voice" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)} required />
@@ -222,17 +223,19 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[625px] grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90vh]">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle>{book ? "Edit Book" : "Add New Book"}</DialogTitle>
             <DialogDescription>
               Fill in the details below. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[70vh] overflow-y-auto pr-4">
-            {formContent}
-          </div>
-          <DialogFooter>
+          <ScrollArea className="overflow-y-auto">
+            <div className="p-6 pt-0">
+              {formContent}
+            </div>
+          </ScrollArea>
+          <DialogFooter className="p-6 pt-0 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
           </DialogFooter>
@@ -250,8 +253,10 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
             Fill in the details below. Click save when you're done.
           </DrawerDescription>
         </DrawerHeader>
-        <div className="p-4 max-h-[70vh] overflow-y-auto">{formContent}</div>
-        <DrawerFooter className="pt-2">
+        <ScrollArea className="overflow-y-auto">
+            <div className="p-4">{formContent}</div>
+        </ScrollArea>
+        <DrawerFooter className="pt-2 border-t">
             <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
             <DrawerClose asChild>
                 <Button variant="outline">Cancel</Button>
