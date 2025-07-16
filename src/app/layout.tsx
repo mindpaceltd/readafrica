@@ -56,14 +56,14 @@ export default async function RootLayout({
                 logoUrl={settings?.logo_url}
                 user={user}
                 isAdmin={profile?.is_admin || false}
-                userRole={profile?.role || 'reader'}
+                userRole={profile?.role as 'publisher' | 'reader' || 'reader'}
             />
             <MobileNavContent
                 siteTitle={settings?.site_title}
                 logoUrl={settings?.logo_url}
                 user={user}
                 isAdmin={profile?.is_admin || false}
-                userRole={profile?.role || 'reader'}
+                userRole={profile?.role as 'publisher' | 'reader' || 'reader'}
             />
             <main>{children}</main>
             </MobileNav>

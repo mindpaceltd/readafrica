@@ -73,7 +73,11 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin, userRole }
     </Button>
   );
 
-  const dashboardHref = '/dashboard';
+  const getDashboardHref = () => {
+      if (isAdmin) return '/admin';
+      if (userRole === 'publisher') return '/publisher';
+      return '/my-books';
+  }
 
   return (
     <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground p-4 flex flex-col">
@@ -93,7 +97,7 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin, userRole }
       </SheetHeader>
       <nav className="flex flex-col space-y-2 flex-1">
          <NavLink href="/books"><BookOpen/>Books</NavLink>
-         {user && <NavLink href={dashboardHref}><LayoutDashboard/>Dashboard</NavLink>}
+         {user && <NavLink href={getDashboardHref()}><LayoutDashboard/>Dashboard</NavLink>}
          <NavLink href="/subscriptions"><Gem />Subscriptions</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
       </nav>

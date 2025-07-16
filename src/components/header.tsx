@@ -52,7 +52,11 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
     router.push('/login');
   }
 
-  const dashboardHref = '/dashboard';
+  const getDashboardHref = () => {
+      if (isAdmin) return '/admin';
+      if (userRole === 'publisher') return '/publisher';
+      return '/my-books';
+  }
   
   const navItems = [
       { href: "/books", label: "Books" },
@@ -83,7 +87,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
             ))}
           {user && (
             <Button variant="ghost" className={cn("hover:text-primary", pathname.startsWith('/my-books') || pathname.startsWith('/admin') || pathname.startsWith('/publisher') ? 'text-primary font-semibold' : '')} asChild>
-                <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
+                <Link href={getDashboardHref()}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
            <Button variant="secondary" asChild>
