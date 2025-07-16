@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle, Gem, Check, Trash2, Edit } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
@@ -60,8 +60,10 @@ export default function SubscriptionPlansPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormState);
-  const idPrefix = useId();
-  let nextId = plans.length + 1;
+  
+  // Use a ref to keep track of the next ID to avoid re-renders
+  const nextId = useRef(initialPlans.length + 1);
+
 
   useEffect(() => {
     if (isEditing && selectedPlanId) {
@@ -103,13 +105,14 @@ export default function SubscriptionPlansPage() {
     } else {
         // Add new plan
         const newPlan: Plan = {
-            id: `${idPrefix}-${nextId++}`,
+            id: `plan-${nextId.current++}`,
             ...formData,
             features: featuresArray,
             price: formData.price,
             active: true, // New plans are active by default
         };
         setPlans([...plans, newPlan]);
+        setFormData(initialFormState); // Reset form after adding
     }
     setIsEditing(false);
     setSelectedPlanId(null);
