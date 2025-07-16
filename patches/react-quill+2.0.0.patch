@@ -1,0 +1,41 @@
+diff --git a/node_modules/react-quill/lib/component.js b/node_modules/react-quill/lib/component.js
+index e35d4d3..b851c22 100644
+--- a/node_modules/react-quill/lib/component.js
++++ b/node_modules/react-quill/lib/component.js
+@@ -10,7 +10,6 @@
+ var _      = require('./utils/lodash');
+ var Quill  = require('quill');
+ var PropTypes = require('prop-types');
+-var ReactDOM = require('react-dom');
+ var QuillMixin = require('./mixin');
+ 
+ var find = _.find;
+@@ -432,7 +431,7 @@
+ 	},
+ 
+ 	getEditingArea: function(){
+-		return ReactDOM.findDOMNode(this.editingArea);
++		return this.editingArea;
+ 	},
+ 
+ 	/*
+diff --git a/node_modules/react-quill/lib/mixin.js b/node_modules/react-quill/lib/mixin.js
+index a6874e4..99a071c 100644
+--- a/node_modules/react-quill/lib/mixin.js
++++ b/node_modules/react-quill/lib/mixin.js
+@@ -1,6 +1,5 @@
+ 'use strict';
+ 
+-var ReactDOM = require('react-dom');
+ var Quill = require('quill');
+ var isEqual = require('lodash/isEqual');
+ var T = require('prop-types');
+@@ -53,7 +52,7 @@
+ 	},
+ 
+ 	getEditingArea: function getEditingArea() {
+-		return ReactDOM.findDOMNode(this).querySelector('.ql-editor');
++		return this.editingArea.current;
+ 	},
+ 
+ 	getEditor: function getEditor() {
