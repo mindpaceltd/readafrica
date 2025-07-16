@@ -53,7 +53,7 @@ export default async function HomePage() {
         <section className="relative text-primary-foreground text-center py-24 md:py-40 px-4 isolate">
             <div className="absolute inset-0 -z-10">
                  <Image 
-                    src="https://placehold.co/1920x1080.png"
+                    src="https://images.saymedia-content.com/.image/t_share/MTg2MTkzMjg5NzY0OTM5NDU5/five-biblical-steps-to-controlling-anger.jpg"
                     alt="Inspirational background"
                     fill
                     className="object-cover"
