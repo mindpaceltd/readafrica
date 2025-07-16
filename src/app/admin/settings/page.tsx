@@ -1,3 +1,4 @@
+
 // src/app/admin/settings/page.tsx
 'use client'
 
@@ -24,20 +25,20 @@ const hslToHex = (h: number, s: number, l: number): string => {
 // Helper function to convert hex color to an HSL string
 const hexToHsl = (hex: string): string => {
     if (!hex || hex.length < 7) return "0 0% 0%";
-    let r = parseInt(hex.substring(1, 3), 16) / 255;
-    let g = parseInt(hex.substring(3, 5), 16) / 255;
-    let b = parseInt(hex.substring(5, 7), 16) / 255;
+    let r_val = parseInt(hex.substring(1, 3), 16) / 255;
+    let g_val = parseInt(hex.substring(3, 5), 16) / 255;
+    let b_val = parseInt(hex.substring(5, 7), 16) / 255;
 
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let max = Math.max(r_val, g_val, b_val), min = Math.min(r_val, g_val, b_val);
     let h = 0, s = 0, l = (max + min) / 2;
 
     if (max !== min) {
         let d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
+            case r_val: h = (g_val - b_val) / d + (g_val < b_val ? 6 : 0); break;
+            case g_val: h = (b_val - r_val) / d + 2; break;
+            case b_val: h = (r_val - g_val) / d + 4; break;
         }
         h /= 6;
     }
@@ -54,29 +55,28 @@ export default function SettingsPage() {
 
     const [primaryColor, setPrimaryColor] = useState('#4A148C');
     const [accentColor, setAccentColor] = useState('#5E35B1');
-    const [backgroundColor, setBackgroundColor] = useState('#F3E5F5'); // light purple E1BEE7 is not good for a light bg
+    const [backgroundColor, setBackgroundColor] = useState('#F3E5F5');
 
     useEffect(() => {
-        // On mount, get colors from CSS variables
         const root = document.documentElement;
         const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
         const accentHsl = getComputedStyle(root).getPropertyValue('--accent').trim();
         const backgroundHsl = getComputedStyle(root).getPropertyValue('--background').trim();
 
         if (primaryHsl) {
-            const [h, s, l] = primaryHsl.split(' ').map(parseFloat);
+            const [h, s, l] = primaryHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
             if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
               setPrimaryColor(hslToHex(h, s, l));
             }
         }
         if (accentHsl) {
-            const [h, s, l] = accentHsl.split(' ').map(parseFloat);
+            const [h, s, l] = accentHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
             if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
               setAccentColor(hslToHex(h, s, l));
             }
         }
         if (backgroundHsl) {
-            const [h, s, l] = backgroundHsl.split(' ').map(parseFloat);
+            const [h, s, l] = backgroundHsl.split(' ').map(val => parseFloat(val.replace('%', '')));
             if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
              setBackgroundColor(hslToHex(h,s,l));
             }
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                         <CardTitle>Admin Roles</CardTitle>
                         <CardDescription>
                             Manage roles and permissions for admin users. (Feature coming soon)
-                        </Description>
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground">This section is under development.</p>
@@ -215,3 +215,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
