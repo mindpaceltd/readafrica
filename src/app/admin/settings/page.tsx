@@ -109,7 +109,7 @@ export default function SettingsPage() {
             <p className="text-muted-foreground">Manage your application settings and configurations.</p>
         </div>
 
-        <Tabs defaultValue="payments" className="w-full">
+        <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="payments">Payments</TabsTrigger>
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -185,6 +185,10 @@ export default function SettingsPage() {
                             <Label htmlFor="site-description">Site Description</Label>
                             <Textarea id="site-description" defaultValue="E-books and daily devotionals by Dr. Climate Wiseman." />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="footer-text">Footer Text</Label>
+                            <Textarea id="footer-text" defaultValue="© 2024 Dr. Climate Wiseman. All rights reserved." />
+                        </div>
                          <div className="space-y-2">
                             <Label>Site Logo</Label>
                             <div className="flex items-center gap-4">
@@ -240,7 +244,7 @@ export default function SettingsPage() {
                         <CardTitle>Admin Roles</CardTitle>
                         <CardDescription>
                             Manage roles and permissions for admin users. (Feature coming soon)
-                        </CardDescription>
+                        </Description>
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground">This section is under development.</p>
