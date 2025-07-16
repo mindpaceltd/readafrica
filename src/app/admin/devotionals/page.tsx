@@ -1,3 +1,4 @@
+
 // src/app/admin/devotionals/page.tsx
 'use client'
 
@@ -187,3 +188,4 @@ export default function ManageDevotionalsPage() {
     </div>
   );
 }
+
