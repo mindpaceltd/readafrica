@@ -26,15 +26,32 @@ export default function LoginPage() {
     setIsSubmitting(true);
     
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: { user }, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (error || !user) {
         toast({
             title: "Login Failed",
             description: error?.message || "An unknown error occurred.",
+            variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+    }
+
+    // Fetch user profile to determine role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_admin, role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+        toast({
+            title: "Could not fetch profile",
+            description: "An error occurred while getting your user details.",
             variant: "destructive",
         });
         setIsSubmitting(false);
@@ -49,8 +66,15 @@ export default function LoginPage() {
 
     // Refresh the router to update the session state across the app
     router.refresh();
-    // Redirect to the central dashboard page which will handle role-based routing
-    router.push('/dashboard');
+
+    // Redirect based on role
+    if (profile.is_admin) {
+        router.push('/admin');
+    } else if (profile.role === 'publisher') {
+        router.push('/publisher');
+    } else {
+        router.push('/my-books');
+    }
   };
 
   return (
