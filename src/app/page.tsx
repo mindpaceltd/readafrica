@@ -1,25 +1,69 @@
 // src/app/page.tsx
-'use client';
-
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, BookHeart, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { books } from "@/lib/data";
 import { EbookCard } from "@/components/ebook-card";
+import { createClient } from "@/lib/supabase/server";
+import { Book } from "@/lib/data";
 
-export default function HomePage() {
+async function getFeaturedBooks() {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('books')
+        .select('*, categories(name)')
+        .eq('is_featured', true)
+        .eq('status', 'published')
+        .limit(3);
 
-  const featuredBooks = books.filter(b => b.isFeatured).slice(0, 3);
+    if (error) {
+        console.error("Error fetching featured books:", error);
+        return [];
+    }
+
+    // Remap book to fit EbookCard props
+    const formattedBooks = data?.map(book => ({
+        id: book.id,
+        title: book.title,
+        description: book.description || '',
+        price: `KES ${book.price}`,
+        thumbnailUrl: book.thumbnail_url || 'https://placehold.co/600x800.png',
+        dataAiHint: book.data_ai_hint || 'book cover',
+        tags: book.tags || [],
+        // @ts-ignore
+        category: book.categories?.name || 'Uncategorized',
+        isSubscription: book.is_subscription,
+        status: book.status as 'published' | 'draft',
+        previewContent: book.preview_content || "No preview available.",
+        fullContent: "Full content is available after purchase.",
+    })) || [];
+
+    return formattedBooks;
+}
+
+export default async function HomePage() {
+
+  const featuredBooks = await getFeaturedBooks();
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary via-accent to-primary/80 text-primary-foreground text-center py-20 md:py-32 px-4">
+        <section className="relative text-primary-foreground text-center py-24 md:py-40 px-4 isolate">
+            <div className="absolute inset-0 -z-10">
+                 <Image 
+                    src="https://placehold.co/1920x1080.png"
+                    alt="Inspirational background"
+                    fill
+                    className="object-cover"
+                    data-ai-hint="sky clouds"
+                    priority
+                 />
+                 <div className="absolute inset-0 bg-primary/70 mix-blend-multiply"></div>
+            </div>
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-headline mb-4">Welcome to Prophetic Reads</h1>
-            <p className="text-lg md:text-xl text-primary-foreground/90 mb-8">
+            <h1 className="text-5xl md:text-6xl font-headline mb-4 drop-shadow-md">Welcome to Prophetic Reads</h1>
+            <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 drop-shadow-sm">
                 Your source for transformative e-books and daily spiritual nourishment from Dr. Climate Wiseman.
             </p>
             <Button size="lg" asChild>
@@ -30,7 +74,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto space-y-16 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-20 md:space-y-24 p-4 md:p-8">
 
           {/* Featured Books Section */}
           {featuredBooks.length > 0 && (
@@ -46,16 +90,36 @@ export default function HomePage() {
             </section>
           )}
 
-          {/* Devotionals CTA */}
-           <section className="bg-card border rounded-lg p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          {/* About the Author */}
+           <section id="about-author" className="flex flex-col md:flex-row items-center gap-8 md:gap-12 bg-card p-8 rounded-lg shadow-md">
+                <div className="w-48 h-48 md:w-56 md:h-56 flex-shrink-0 relative">
+                    <Image 
+                        src="https://placehold.co/400x400.png"
+                        alt="Dr. Climate Wiseman"
+                        fill
+                        className="rounded-full object-cover shadow-lg"
+                        data-ai-hint="portrait man"
+                    />
+                </div>
                 <div className="text-center md:text-left">
-                    <Sparkles className="h-12 w-12 text-primary mx-auto md:mx-0 mb-4"/>
-                    <h2 className="text-3xl font-headline text-primary mb-2">Daily Prophetic Word</h2>
-                    <p className="text-muted-foreground max-w-2xl">
+                    <h2 className="text-3xl font-headline text-primary mb-2">About Dr. Climate Wiseman</h2>
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                        Dr. Climate Wiseman is a renowned spiritual leader, author, and speaker, dedicated to empowering individuals with prophetic wisdom and guidance. With decades of experience in ministry, his teachings have transformed lives across the globe, bringing clarity, healing, and purpose.
+                    </p>
+                     <p className="font-headline text-2xl text-accent">Dr. Climate Wiseman</p>
+                </div>
+           </section>
+
+          {/* Devotionals CTA */}
+           <section className="bg-gradient-to-tr from-primary to-accent border rounded-lg p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 text-primary-foreground">
+                <div className="text-center md:text-left">
+                    <Sparkles className="h-12 w-12 mx-auto md:mx-0 mb-4"/>
+                    <h2 className="text-3xl font-headline mb-2">Daily Prophetic Word</h2>
+                    <p className="text-primary-foreground/80 max-w-2xl">
                         Receive a unique and inspiring message for your day, tailored to provide spiritual guidance and upliftment.
                     </p>
                 </div>
-                <Button size="lg" asChild variant="outline" className="flex-shrink-0">
+                <Button size="lg" asChild variant="secondary" className="flex-shrink-0">
                     <Link href="/devotionals">
                         Get Your Daily Word <ArrowRight className="ml-2"/>
                     </Link>
