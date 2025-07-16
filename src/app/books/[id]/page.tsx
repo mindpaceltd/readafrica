@@ -221,17 +221,27 @@ export default function BookPage() {
                 <h2 className="text-xl md:text-2xl font-headline text-primary flex items-center gap-2">
                     {canViewFullContent ? <Unlock className="text-green-500"/> : <Lock className="text-red-500" />} Full Text
                 </h2>
-                <div className="prose dark:prose-invert mt-4 text-base md:text-lg leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner relative">
-                    {!canViewFullContent && (
+                <div className="mt-4 bg-card rounded-lg shadow-inner relative aspect-[8.5/11] w-full">
+                    {!canViewFullContent ? (
                         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
                            <div className="text-center p-4">
                                 <Lock className="mx-auto h-10 w-10 md:h-12 md:w-12 text-primary mb-4" />
                                 <p className="font-bold text-sm md:text-base">Purchase this book to unlock the full text.</p>
                            </div>
                         </div>
+                    ) : book.full_content_url ? (
+                        <iframe
+                            src={book.full_content_url}
+                            className="w-full h-full border-none rounded-lg"
+                            title={`Full text of ${book.title}`}
+                        />
+                    ) : (
+                         <div className="absolute inset-0 flex items-center justify-center z-10 rounded-lg">
+                           <div className="text-center p-4">
+                                <p className="font-bold text-sm md:text-base text-muted-foreground">Full content not available yet.</p>
+                           </div>
+                        </div>
                     )}
-                    {/* In a real app, this would be fetched from book.full_content_url */}
-                    <p>{canViewFullContent ? "Thank you for your purchase! You can now read the full content of the book here." : "Purchase the book to see the full content."}</p>
                 </div>
             </div>
           </div>
@@ -272,5 +282,3 @@ function BookPageSkeleton() {
         </div>
     )
 }
-
-
