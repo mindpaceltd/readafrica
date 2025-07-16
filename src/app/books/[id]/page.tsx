@@ -26,6 +26,7 @@ export default function BookPage() {
 
   const [book, setBook] = useState<BookWithCategory | null>(null);
   const [isPurchased, setIsPurchased] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,6 +54,18 @@ export default function BookPage() {
         const { data: { user } } = await supabase.auth.getUser();
 
         if(user) {
+            // Check admin status
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('is_admin')
+              .eq('id', user.id)
+              .single();
+            
+            if (profileData?.is_admin) {
+                setIsAdmin(true);
+            }
+
+            // Check purchase status
             const { data: purchaseData, error: purchaseError } = await supabase
                 .from('user_books')
                 .select('*')
@@ -131,6 +144,9 @@ export default function BookPage() {
       });
     }, 3000);
   };
+  
+  const canViewFullContent = isPurchased || isAdmin;
+
 
   if (isLoading) {
     return <BookPageSkeleton />;
@@ -178,10 +194,10 @@ export default function BookPage() {
                  <h1 className="text-2xl md:text-3xl font-headline text-primary mb-2">{book.title}</h1>
                  <p className="text-muted-foreground mb-4 text-sm md:text-base">{book.description}</p>
                  <p className="text-2xl font-bold text-accent mb-4">KES {book.price}</p>
-                 {isPurchased ? (
+                 {canViewFullContent ? (
                      <div className="flex items-center justify-center w-full p-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-md">
                         <CheckCircle className="mr-2" />
-                        <span>Purchased</span>
+                        <span>{isAdmin ? 'Admin Access' : 'Purchased'}</span>
                     </div>
                  ) : (
                     <Button onClick={handlePurchase} disabled={isPurchasing} className="w-full">
@@ -203,10 +219,10 @@ export default function BookPage() {
 
             <div id="full-text">
                 <h2 className="text-xl md:text-2xl font-headline text-primary flex items-center gap-2">
-                    {isPurchased ? <Unlock className="text-green-500"/> : <Lock className="text-red-500" />} Full Text
+                    {canViewFullContent ? <Unlock className="text-green-500"/> : <Lock className="text-red-500" />} Full Text
                 </h2>
                 <div className="prose dark:prose-invert mt-4 text-base md:text-lg leading-relaxed whitespace-pre-line p-4 md:p-6 bg-card rounded-lg shadow-inner relative">
-                    {!isPurchased && (
+                    {!canViewFullContent && (
                         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
                            <div className="text-center p-4">
                                 <Lock className="mx-auto h-10 w-10 md:h-12 md:w-12 text-primary mb-4" />
@@ -215,7 +231,7 @@ export default function BookPage() {
                         </div>
                     )}
                     {/* In a real app, this would be fetched from book.full_content_url */}
-                    <p>{isPurchased ? "Thank you for your purchase! You can now read the full content of the book here." : "Purchase the book to see the full content."}</p>
+                    <p>{canViewFullContent ? "Thank you for your purchase! You can now read the full content of the book here." : "Purchase the book to see the full content."}</p>
                 </div>
             </div>
           </div>
@@ -256,4 +272,5 @@ function BookPageSkeleton() {
         </div>
     )
 }
+
 
