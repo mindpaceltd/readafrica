@@ -18,11 +18,11 @@ import { Badge } from "@/components/ui/badge";
 
   
 const users = [
-    { id: 1, phone: '+254712345678', name: 'John Doe', joined: '2023-10-26', purchases: 3 },
-    { id: 2, phone: '+254722345678', name: 'Jane Smith', joined: '2023-10-25', purchases: 1 },
-    { id: 3, phone: '+254733345678', name: 'Peter Jones', joined: '2023-10-25', purchases: 0 },
-    { id: 4, phone: '+254744345678', name: 'Mary Anne', joined: '2023-10-24', purchases: 5 },
-    { id: 5, phone: '+254755345678', name: 'Chris Green', joined: '2023-10-23', purchases: 2 },
+    { id: 1, phone: '+254712345678', name: 'John Doe', joined: '2023-10-26', purchases: 3, balance: 'KES 150.00' },
+    { id: 2, phone: '+254722345678', name: 'Jane Smith', joined: '2023-10-25', purchases: 1, balance: 'KES 50.00' },
+    { id: 3, phone: '+254733345678', name: 'Peter Jones', joined: '2023-10-25', purchases: 0, balance: 'KES 1200.00' },
+    { id: 4, phone: '+254744345678', name: 'Mary Anne', joined: '2023-10-24', purchases: 5, balance: 'KES 0.00' },
+    { id: 5, phone: '+254755345678', name: 'Chris Green', joined: '2023-10-23', purchases: 2, balance: 'KES 350.50' },
 ];
   
 export default function UsersPage() {
@@ -40,6 +40,7 @@ export default function UsersPage() {
                             <TableHead>User</TableHead>
                             <TableHead>Phone Number</TableHead>
                             <TableHead>Purchases</TableHead>
+                            <TableHead>Balance</TableHead>
                             <TableHead>Date Joined</TableHead>
                         </TableRow>
                         </TableHeader>
@@ -62,6 +63,7 @@ export default function UsersPage() {
                                 <TableCell>
                                     <Badge variant="outline">{user.purchases} books</Badge>
                                 </TableCell>
+                                <TableCell className="font-medium">{user.balance}</TableCell>
                                 <TableCell>{user.joined}</TableCell>
                             </TableRow>
                         ))}
