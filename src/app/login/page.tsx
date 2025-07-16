@@ -41,30 +41,14 @@ export default function LoginPage() {
         return;
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', data.user.id)
-        .single();
-    
-    if (profileError) {
-        console.error("Could not fetch user profile:", profileError?.message);
-        // Decide what to do if profile is not found. For now, log them in as a regular user.
-    }
-
     toast({
         title: "Login Successful!",
         description: "Redirecting...",
         className: 'bg-green-600 border-green-600 text-white',
     });
 
-    // Redirect immediately without timeout
-    if (profile?.is_admin) {
-        router.push('/admin');
-    } else {
-        router.push('/my-books');
-    }
+    // Always redirect to the central dashboard page, which handles role-based routing.
+    router.push('/dashboard');
   };
 
   return (
