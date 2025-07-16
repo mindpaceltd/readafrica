@@ -1,6 +1,7 @@
 // src/app/books/page.tsx
 import { createClient } from "@/lib/supabase/server";
 import { BooksPageClient } from './books-page-client';
+import type { Book } from "@/lib/data";
 
 export default async function BooksPage({
     searchParams,
@@ -49,22 +50,23 @@ export default async function BooksPage({
   }
 
   // Remap book to fit EbookCard props
-  const formattedBooks = books?.map(book => ({
+  const formattedBooks: Book[] = books?.map(book => ({
       id: book.id,
       title: book.title,
+      author: book.author || 'Dr C Wiseman',
       description: book.description || '',
-      price: `KES ${book.price}`,
-      thumbnailUrl: book.thumbnail_url || 'https://placehold.co/600x800.png',
-      dataAiHint: book.data_ai_hint || 'book cover',
+      price: book.price,
+      thumbnail_url: book.thumbnail_url || 'https://placehold.co/600x800.png',
+      data_ai_hint: book.data_ai_hint || 'book cover',
       tags: book.tags || [],
       // @ts-ignore
       category: book.categories?.name || 'Uncategorized',
-      isSubscription: book.is_subscription,
+      is_subscription: book.is_subscription,
       status: book.status as 'published' | 'draft',
-      // The book object from the db doesn't have these, but the component expects them.
-      // Providing default values to satisfy the type.
-      previewContent: book.preview_content || "No preview available.",
-      fullContent: "Full content is available after purchase.",
+      preview_content: book.preview_content || "No preview available.",
+      // These fields below are not on the Book type from the DB, but are expected by components
+      bestseller: book.bestseller || false,
+      is_featured: book.is_featured || false,
   })) || [];
 
 
@@ -78,4 +80,3 @@ export default async function BooksPage({
     />
   );
 }
-

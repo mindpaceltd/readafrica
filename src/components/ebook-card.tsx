@@ -20,11 +20,11 @@ export function EbookCard({ book }: EbookCardProps) {
       <CardHeader className="p-0">
         <Link href={`/books/${book.id}`} className="block relative aspect-[3/4] w-full">
           <Image
-            src={book.thumbnailUrl}
+            src={book.thumbnail_url || 'https://placehold.co/600x800.png'}
             alt={`Cover of ${book.title}`}
             fill
             className="object-cover rounded-t-lg"
-            data-ai-hint={book.dataAiHint}
+            data-ai-hint={book.data_ai_hint || 'book cover'}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </Link>
@@ -34,11 +34,11 @@ export function EbookCard({ book }: EbookCardProps) {
           <Link href={`/books/${book.id}`} className="hover:underline">{book.title}</Link>
         </CardTitle>
         <p className="text-xs text-muted-foreground line-clamp-2">
-          {book.description}
+          by {book.author || 'Dr C Wiseman'}
         </p>
       </CardContent>
       <CardFooter className="p-3 flex justify-between items-center">
-        <p className="font-bold text-base text-accent">{book.price}</p>
+        <p className="font-bold text-base text-accent">KES {book.price}</p>
         <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground text-xs h-8">
           <Link href={`/books/${book.id}`}>View</Link>
         </Button>
