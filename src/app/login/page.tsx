@@ -22,14 +22,17 @@ export default function LoginPage() {
     // In a real app, you would handle authentication here.
     // We'll simulate a successful login and redirect.
     console.log(`Logging in as ${isAdmin ? 'Admin' : 'User'}...`);
+    
+    // Mock login: set a flag in localStorage
+    localStorage.setItem('isLoggedIn', 'true');
 
     setTimeout(() => {
       if (isAdmin) {
         router.push('/admin');
       } else {
-        router.push('/my-books');
+        router.push('/dashboard');
       }
-      setIsSubmitting(false);
+      // Don't set submitting to false, as we are navigating away
     }, 1000);
   };
 

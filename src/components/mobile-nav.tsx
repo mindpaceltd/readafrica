@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookHeart, Info, Mail, BookOpen, LogIn, Sparkles, Handshake } from 'lucide-react';
+import { BookHeart, Info, Mail, BookOpen, LogIn, Sparkles, Handshake, LayoutDashboard } from 'lucide-react';
 
 const MobileNavContext = React.createContext<{
   open: boolean;
@@ -39,6 +39,15 @@ export function MobileNavTrigger({ children }: { children: React.ReactNode }) {
 
 export function MobileNavContent() {
   const { setOpen } = React.useContext(MobileNavContext);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    // Simulate checking login status
+     if (typeof window !== 'undefined') {
+        const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
+        setIsLoggedIn(loggedInStatus);
+    }
+  }, []);
 
   const NavLink = ({ href, children }: {href: string, children: React.ReactNode}) => (
     <Button variant="ghost" className="justify-start gap-3 text-lg py-6" asChild>
@@ -61,7 +70,8 @@ export function MobileNavContent() {
         </SheetTitle>
       </SheetHeader>
       <nav className="flex flex-col space-y-2">
-         <NavLink href="/my-books"><BookOpen/>My Books</NavLink>
+         <NavLink href="/books"><BookOpen/>Books</NavLink>
+         {isLoggedIn && <NavLink href="/dashboard"><LayoutDashboard/>Dashboard</NavLink>}
          <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
          <NavLink href="/#about"><Info/>About</NavLink>
@@ -71,7 +81,7 @@ export function MobileNavContent() {
         <Button className="w-full justify-center gap-3" asChild>
             <Link href="/login" onClick={() => setOpen(false)}>
                 <LogIn/>
-                Login / Register
+                {isLoggedIn ? "Logout" : "Login / Register"}
             </Link>
         </Button>
       </div>
