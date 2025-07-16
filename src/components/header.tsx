@@ -44,6 +44,10 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
     router.refresh();
   };
 
+  const handleLogin = () => {
+    router.push('/login');
+  }
+
   const dashboardHref = isAdmin ? '/admin' : '/my-books';
 
   return (
@@ -77,7 +81,7 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
                 <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
-           <Button className="text-primary-foreground bg-primary hover:bg-primary/90" onClick={user ? handleLogout : () => router.push('/login')}>
+           <Button className="text-primary-foreground bg-primary hover:bg-primary/90" onClick={user ? handleLogout : handleLogin}>
              {user ? <span>Logout</span> : <span>Login</span>}
            </Button>
         </div>
