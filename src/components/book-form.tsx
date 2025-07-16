@@ -24,7 +24,7 @@ import { Label } from "./ui/label"
 import { Textarea } from "./ui/textarea"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Book } from "@/lib/data"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { UploadCloud, X } from "lucide-react"
 import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
@@ -38,9 +38,33 @@ type BookFormProps = {
 
 export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [title, setTitle] = useState(book?.title || "");
-  const [tags, setTags] = useState<string[]>(book?.tags || []);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [purchaseType, setPurchaseType] = useState("purchase");
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
+
+  useEffect(() => {
+    if (book) {
+      setTitle(book.title);
+      setDescription(book.description || "");
+      setPrice(book.price.replace('KES ', ''));
+      setPurchaseType(book.isSubscription ? 'subscription' : 'purchase');
+      setIsFeatured(book.isFeatured || false);
+      setTags(book.tags || []);
+    } else {
+      // Reset form when adding a new book
+      setTitle('');
+      setDescription('');
+      setPrice('');
+      setPurchaseType('purchase');
+      setIsFeatured(false);
+      setTags([]);
+    }
+  }, [book]);
+
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -61,28 +85,28 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle book creation/update logic here
-    console.log("Submitting book:", { title, tags });
+    console.log("Submitting book:", { title, description, price, purchaseType, isFeatured, tags });
     onOpenChange(false);
   }
 
   const formContent = (
-    <form onSubmit={handleFormSubmit} className="space-y-4">
+    <form id="book-form" onSubmit={handleFormSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">Book Title</Label>
         <Input id="title" placeholder="e.g., The Prophetic Voice" value={title} onChange={(e) => setTitle(e.target.value)} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Textarea id="description" placeholder="A short summary of the book" rows={3} defaultValue={book?.description} />
+        <Textarea id="description" placeholder="A short summary of the book" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
             <Label htmlFor="price">Price (KES)</Label>
-            <Input id="price" type="number" placeholder="e.g., 500" defaultValue={book?.price.replace('KES ', '')}/>
+            <Input id="price" type="number" placeholder="e.g., 500" value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
         <div className="space-y-2">
           <Label>Purchase Type</Label>
-          <RadioGroup defaultValue={book?.isSubscription ? 'subscription' : 'purchase'} className="flex pt-2 gap-4">
+          <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="flex pt-2 gap-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="purchase" id="r1" />
               <Label htmlFor="r1">Purchase</Label>
@@ -123,7 +147,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
                     Display this book prominently on the home page.
                 </p>
             </div>
-            <Switch defaultChecked={book?.isFeatured} aria-label="Featured book" />
+            <Switch checked={isFeatured} onCheckedChange={setIsFeatured} aria-label="Featured book" />
         </div>
        <div className="space-y-2">
         <Label>Book Cover</Label>

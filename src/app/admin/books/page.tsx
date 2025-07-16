@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { books } from "@/lib/data";
+import { books, type Book } from "@/lib/data";
 import { PlusCircle, MoreHorizontal, Star, FileText, BookLock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -33,6 +33,24 @@ import { BookForm } from "@/components/book-form";
 
 export default function ManageBooksPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
+  const handleEdit = (book: Book) => {
+    setSelectedBook(book);
+    setIsFormOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedBook(null);
+    setIsFormOpen(true);
+  };
+
+  const onFormOpenChange = (open: boolean) => {
+    setIsFormOpen(open);
+    if (!open) {
+        setSelectedBook(null);
+    }
+  }
 
   return (
     <div>
@@ -41,7 +59,7 @@ export default function ManageBooksPage() {
             <h1 className="text-3xl font-headline text-primary">Manage Books</h1>
             <p className="text-muted-foreground">Add, edit, and manage your e-books.</p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <Button onClick={handleAdd}>
           <PlusCircle className="mr-2" /> Add Book
         </Button>
       </div>
@@ -103,7 +121,7 @@ export default function ManageBooksPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleEdit(book)}>Edit</DropdownMenuItem>
                         <DropdownMenuItem>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -114,7 +132,7 @@ export default function ManageBooksPage() {
           </Table>
         </CardContent>
       </Card>
-      <BookForm open={isFormOpen} onOpenChange={setIsFormOpen} />
+      <BookForm open={isFormOpen} onOpenChange={onFormOpenChange} book={selectedBook} />
     </div>
   );
 }
