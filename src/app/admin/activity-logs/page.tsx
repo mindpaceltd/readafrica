@@ -2,10 +2,7 @@
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card";
+} from "@/components/ui/card";
 import {
     Table,
     TableBody,
@@ -16,16 +13,31 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/server";
 
-const activityLogs = [
-    { id: 1, admin: 'admin@propheticreads.com', adminName: 'Admin User', action: 'Created Book', details: 'Added "The Divine Key"', timestamp: '2023-11-01 10:30 AM' },
-    { id: 2, admin: 'editor@propheticreads.com', adminName: 'Editor User', action: 'Updated Book', details: 'Edited "Breaking Free"', timestamp: '2023-11-01 09:45 AM' },
-    { id: 3, admin: 'admin@propheticreads.com', adminName: 'Admin User', action: 'Sent Notification', details: 'Sent "New Book Available!"', timestamp: '2023-10-31 05:00 PM' },
-    { id: 4, admin: 'admin@propheticreads.com', adminName: 'Admin User', action: 'Updated Settings', details: 'Changed site title', timestamp: '2023-10-31 04:15 PM' },
-    { id: 5, admin: 'editor@propheticreads.com', adminName: 'Editor User', action: 'Created Plan', details: 'Added "Platinum Tier"', timestamp: '2023-10-30 11:00 AM' },
-];
-  
-export default function ActivityLogsPage() {
+async function getActivityLogs() {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('activity_logs')
+        .select(`
+            *,
+            profiles (
+                full_name,
+                avatar_url
+            )
+        `)
+        .order('timestamp', { ascending: false });
+
+    if (error) {
+        console.error("Error fetching activity logs:", error);
+        return [];
+    }
+    return data;
+}
+
+export default async function ActivityLogsPage() {
+    const activityLogs = await getActivityLogs();
+    
     return (
         <div>
             <div className="mb-8">
@@ -44,16 +56,29 @@ export default function ActivityLogsPage() {
                         </TableRow>
                         </TableHeader>
                         <TableBody>
+                        {activityLogs.length === 0 && (
+                             <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                    No activity logs found.
+                                </TableCell>
+                            </TableRow>
+                        )}
                         {activityLogs.map((log) => (
                             <TableRow key={log.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-9 w-9">
-                                            <AvatarFallback>{log.adminName.charAt(0)}</AvatarFallback>
+                                            {/* @ts-ignore */}
+                                            <AvatarImage src={log.profiles?.avatar_url || ''} />
+                                            <AvatarFallback>
+                                                {/* @ts-ignore */}
+                                                {log.profiles?.full_name?.charAt(0) || 'A'}
+                                            </AvatarFallback>
                                         </Avatar>
                                         <div className="grid gap-0.5">
-                                            <p className="font-medium">{log.adminName}</p>
-                                            <p className="text-xs text-muted-foreground">{log.admin}</p>
+                                            {/* @ts-ignore */}
+                                            <p className="font-medium">{log.profiles?.full_name || 'Unknown Admin'}</p>
+                                            <p className="text-xs text-muted-foreground">{log.admin_id}</p>
                                         </div>
                                     </div>
                                 </TableCell>
@@ -62,10 +87,12 @@ export default function ActivityLogsPage() {
                                         log.action.includes('Create') || log.action.includes('Sent') ? 'default' :
                                         log.action.includes('Update') ? 'secondary' :
                                         'destructive'
-                                    } className={log.action.includes('Create') || log.action.includes('Sent') ? 'bg-blue-600' : ''}>{log.action}</Badge>
+                                    } className={log.action.includes('Create') || log.action.includes('Sent') ? 'bg-blue-600' : ''}>
+                                        {log.action}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>{log.details}</TableCell>
-                                <TableCell>{log.timestamp}</TableCell>
+                                <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
                             </TableRow>
                         ))}
                         </TableBody>
