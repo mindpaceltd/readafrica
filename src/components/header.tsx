@@ -11,10 +11,15 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 
+type Profile = {
+    is_admin: boolean;
+} | null;
+
 export function Header() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,13 +29,31 @@ export function Header() {
 
     const supabase = createClient();
     const checkUser = async () => {
-        const { data } = await supabase.auth.getUser();
-        setUser(data.user);
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+        if (user) {
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('is_admin')
+                .eq('id', user.id)
+                .single();
+            setProfile(profileData);
+        }
     }
     checkUser();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
         setUser(session?.user ?? null);
+        if (session?.user) {
+             const { data: profileData } = await supabase
+                .from('profiles')
+                .select('is_admin')
+                .eq('id', session.user.id)
+                .single();
+            setProfile(profileData);
+        } else {
+            setProfile(null);
+        }
     });
 
     return () => {
@@ -45,6 +68,8 @@ export function Header() {
     router.push('/login');
     router.refresh();
   };
+
+  const dashboardHref = profile?.is_admin ? '/admin' : '/my-books';
 
   return (
     <header className={cn(
@@ -70,7 +95,7 @@ export function Header() {
           </Button>
           {user && (
             <Button variant="ghost" className="hover:text-primary" asChild>
-                <Link href="/dashboard"><LayoutDashboard className="mr-2"/>Dashboard</Link>
+                <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
            <Button className="text-primary-foreground bg-primary hover:bg-primary/90" asChild={!user} onClick={user ? handleLogout : undefined}>

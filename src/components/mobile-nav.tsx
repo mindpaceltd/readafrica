@@ -11,7 +11,14 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookHeart, Info, Mail, BookOpen, LogIn, Sparkles, Handshake, LayoutDashboard } from 'lucide-react';
+import { BookHeart, Info, Mail, BookOpen, LogIn, LogOut, Sparkles, Handshake, LayoutDashboard } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+
+type Profile = {
+    is_admin: boolean;
+} | null;
 
 const MobileNavContext = React.createContext<{
   open: boolean;
@@ -38,16 +45,49 @@ export function MobileNavTrigger({ children }: { children: React.ReactNode }) {
 }
 
 export function MobileNavContent() {
-  const { setOpen } = React.useContext(MobileNavContext);
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const { open, setOpen } = React.useContext(MobileNavContext);
+  const router = useRouter();
+  const [user, setUser] = React.useState<User | null>(null);
+  const [profile, setProfile] = React.useState<Profile>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // Simulate checking login status
-     if (typeof window !== 'undefined') {
-        const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
-        setIsLoggedIn(loggedInStatus);
-    }
+    const supabase = createClient();
+    const checkUser = async () => {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+        if (user) {
+            const { data: profileData } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+            setProfile(profileData);
+        }
+        setLoading(false);
+    };
+
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+            const { data: profileData } = await supabase.from('profiles').select('is_admin').eq('id', session.user.id).single();
+            setProfile(profileData);
+        } else {
+            setProfile(null);
+        }
+    });
+
+    return () => {
+        authListener.subscription.unsubscribe();
+    };
   }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setOpen(false);
+    router.push('/login');
+    router.refresh();
+  };
 
   const NavLink = ({ href, children }: {href: string, children: React.ReactNode}) => (
     <Button variant="ghost" className="justify-start gap-3 text-lg py-6" asChild>
@@ -55,10 +95,12 @@ export function MobileNavContent() {
             {children}
         </Link>
     </Button>
-  )
+  );
+
+  const dashboardHref = profile?.is_admin ? '/admin' : '/my-books';
 
   return (
-    <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground p-4">
+    <SheetContent side="left" className="w-3/4 bg-primary text-primary-foreground p-4 flex flex-col">
       <SheetHeader>
         <SheetTitle className="mb-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={() => setOpen(false)}>
@@ -69,21 +111,26 @@ export function MobileNavContent() {
           </Link>
         </SheetTitle>
       </SheetHeader>
-      <nav className="flex flex-col space-y-2">
+      <nav className="flex flex-col space-y-2 flex-1">
          <NavLink href="/books"><BookOpen/>Books</NavLink>
-         {isLoggedIn && <NavLink href="/dashboard"><LayoutDashboard/>Dashboard</NavLink>}
+         {user && <NavLink href={dashboardHref}><LayoutDashboard/>Dashboard</NavLink>}
          <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
          <NavLink href="/#about"><Info/>About</NavLink>
          <NavLink href="/#contact"><Mail/>Contact</NavLink>
       </nav>
-      <div className="absolute bottom-4 right-4 left-4">
-        <Button className="w-full justify-center gap-3" asChild>
-            <Link href="/login" onClick={() => setOpen(false)}>
-                <LogIn/>
-                {isLoggedIn ? "Logout" : "Login / Register"}
-            </Link>
-        </Button>
+      <div className="mt-auto">
+        {user ? (
+            <Button variant="secondary" className="w-full justify-center gap-3" onClick={handleLogout}>
+                <LogOut/> Logout
+            </Button>
+        ) : (
+            <Button variant="secondary" className="w-full justify-center gap-3" asChild>
+                <Link href="/login" onClick={() => setOpen(false)}>
+                    <LogIn/> Login / Register
+                </Link>
+            </Button>
+        )}
       </div>
     </SheetContent>
   );

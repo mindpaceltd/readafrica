@@ -1,20 +1,23 @@
 // src/app/dashboard/page.tsx
-'use client';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+export default async function DashboardRedirectPage() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-// This component just redirects to the main dashboard page /my-books
-export default function DashboardRedirectPage() {
-  const router = useRouter();
+    if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single();
+        
+        if (profile?.is_admin) {
+            redirect('/admin');
+        }
+    }
 
-  useEffect(() => {
-    router.replace('/my-books');
-  }, [router]);
-
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p>Redirecting to your dashboard...</p>
-    </div>
-  );
+    // Default redirect for regular users or if profile fetch fails
+    redirect('/my-books');
 }

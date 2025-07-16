@@ -48,7 +48,7 @@ export default function LoginPage() {
         .eq('id', data.user.id)
         .single();
     
-    if (profileError || !profile) {
+    if (profileError) {
         console.error("Could not fetch user profile:", profileError?.message);
         // Decide what to do if profile is not found. For now, log them in as a regular user.
     }
@@ -59,14 +59,13 @@ export default function LoginPage() {
         className: 'bg-green-600 border-green-600 text-white',
     });
 
-    setTimeout(() => {
-        if (profile?.is_admin) {
-            router.push('/admin');
-        } else {
-            router.push('/dashboard');
-        }
-        router.refresh(); // Refresh router state to update header etc.
-    }, 1000);
+    // Redirect immediately without timeout
+    if (profile?.is_admin) {
+        router.push('/admin');
+    } else {
+        router.push('/my-books');
+    }
+    router.refresh(); 
   };
 
   return (
