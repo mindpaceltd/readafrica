@@ -1,181 +1,235 @@
 
--- Create the profiles table to store public user data
-CREATE TABLE public.profiles (
-    id uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
-    updated_at timestamp with time zone,
-    full_name text,
-    avatar_url text,
-    phone_number text,
-    is_admin boolean DEFAULT false NOT NULL,
-    balance numeric(10, 2) DEFAULT 0.00 NOT NULL,
-    CONSTRAINT profiles_pkey PRIMARY KEY (id)
-);
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
--- Add policies for profiles table
-CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own profile." ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile." ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admins can do anything." ON public.profiles FOR ALL USING (public.profiles.is_admin = true);
+-- Enable HTTP extension
+create extension if not exists http with schema extensions;
 
--- Function to create a profile for a new user
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, avatar_url)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
-  RETURN new;
-END;
+-- Create a table for public profiles
+create table public.profiles (
+  id uuid not null references auth.users on delete cascade,
+  updated_at timestamp with time zone,
+  full_name text,
+  avatar_url text,
+  is_admin boolean not null default false,
+  balance numeric(10, 2) not null default 0.00,
+  phone_number text,
+  primary key (id)
+);
+-- Set up Row Level Security (RLS)
+-- See https://supabase.com/docs/guides/auth/row-level-security
+alter table public.profiles
+  enable row level security;
+
+create policy "Public profiles are viewable by everyone." on public.profiles
+  for select using (true);
+
+create policy "Users can insert their own profile." on public.profiles
+  for insert with check (auth.uid() = id);
+
+create policy "Users can update own profile." on public.profiles
+  for update using (auth.uid() = id);
+
+-- This trigger automatically creates a profile for new users.
+-- See https://supabase.com/docs/guides/auth/managing-user-data#using-triggers for more details.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name, avatar_url)
+  values (new.id, new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'avatar_url');
+  return new;
+end;
 $$;
--- Trigger to call the function when a new user signs up
-CREATE TRIGGER on_auth_user_created
-AFTER INSERT ON auth.users
-FOR EACH ROW
-EXECUTE FUNCTION public.handle_new_user();
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 
--- Create the categories table for books
-CREATE TABLE public.categories (
-    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    name text NOT NULL
+-- Create a table for book categories
+create table public.categories (
+    id serial primary key,
+    name text not null unique,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
--- Add policies for categories table
-CREATE POLICY "Categories are public." ON public.categories FOR SELECT USING (true);
-CREATE POLICY "Admins can manage categories." ON public.categories FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.categories enable row level security;
+create policy "Categories are viewable by everyone." on public.categories for select using (true);
+create policy "Admins can manage categories." on public.categories for all using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
 
--- Create the books table
-CREATE TABLE public.books (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    title text NOT NULL,
+-- Create a table for books
+create table public.books (
+    id uuid primary key default gen_random_uuid(),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    title text not null,
     description text,
-    price numeric(10, 2) NOT NULL,
+    price numeric(10,2) not null default 0.00,
     thumbnail_url text,
     data_ai_hint text,
     preview_content text,
-    full_content_url text,
-    is_featured boolean DEFAULT false NOT NULL,
-    is_subscription boolean DEFAULT false NOT NULL,
-    status text DEFAULT 'draft'::text NOT NULL, -- 'draft' or 'published'
-    category_id bigint REFERENCES public.categories(id) ON DELETE SET NULL,
+    full_content_url text, -- URL to PDF/EPUB in storage
+    is_featured boolean not null default false,
+    is_subscription boolean not null default false,
     tags text[],
+    category_id integer references public.categories(id) on delete set null,
+    status text not null default 'draft', -- 'draft' or 'published'
     seo_title text,
     seo_description text
 );
-ALTER TABLE public.books ENABLE ROW LEVEL SECURITY;
--- Add policies for books table
-CREATE POLICY "Published books are viewable by everyone." ON public.books FOR SELECT USING (status = 'published');
-CREATE POLICY "Admins can see all books." ON public.books FOR SELECT USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
-CREATE POLICY "Admins can manage books." ON public.books FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.books enable row level security;
+create policy "Published books are viewable by everyone." on public.books for select using (status = 'published');
+create policy "Admins can see all books." on public.books for select using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
+create policy "Admins can manage books." on public.books for all using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
 
 
--- Create the subscription_plans table
-CREATE TABLE public.subscription_plans (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    name text NOT NULL,
-    price numeric(10, 2) NOT NULL,
-    period text NOT NULL, -- e.g., 'daily', 'weekly', 'monthly'
+-- Create table for subscription plans
+create table public.subscription_plans (
+    id uuid primary key default gen_random_uuid(),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    name text not null,
+    price numeric(10,2) not null,
+    period text not null, -- e.g., 'monthly', 'yearly'
     features text[],
-    active boolean DEFAULT true NOT NULL
+    active boolean not null default true
 );
-ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
--- Add policies for subscription_plans table
-CREATE POLICY "Active subscription plans are public." ON public.subscription_plans FOR SELECT USING (active = true);
-CREATE POLICY "Admins can manage subscription plans." ON public.subscription_plans FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.subscription_plans enable row level security;
+create policy "Active subscription plans are viewable by everyone." on public.subscription_plans for select using (active = true);
+create policy "Admins can manage subscription plans." on public.subscription_plans for all using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
 
 
--- Create user_books join table for purchases
-CREATE TABLE public.user_books (
-    user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    book_id uuid NOT NULL REFERENCES public.books(id) ON DELETE CASCADE,
-    purchased_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT user_books_pkey PRIMARY KEY (user_id, book_id)
+-- Junction table for users and their purchased books
+create table public.user_books (
+    user_id uuid not null references public.profiles(id) on delete cascade,
+    book_id uuid not null references public.books(id) on delete cascade,
+    purchased_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    primary key (user_id, book_id)
 );
-ALTER TABLE public.user_books ENABLE ROW LEVEL SECURITY;
--- Add policies for user_books table
-CREATE POLICY "Users can view their own purchased books." ON public.user_books FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Admins can view all purchases." ON public.user_books FOR SELECT USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.user_books enable row level security;
+create policy "Users can view their own library." on public.user_books for select using (auth.uid() = user_id);
+-- Admins can view all, and inserts/updates happen via trusted server-side calls (e.g. after payment)
 
--- Create transactions table
-CREATE TABLE public.transactions (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    book_id uuid REFERENCES public.books(id) ON DELETE SET NULL,
-    subscription_plan_id uuid REFERENCES public.subscription_plans(id) ON DELETE SET NULL,
-    amount numeric(10, 2) NOT NULL,
-    status text NOT NULL, -- e.g., 'pending', 'completed', 'failed'
-    transaction_type text NOT NULL, -- e.g., 'purchase', 'subscription', 'topup'
+
+-- Junction table for users and their active subscriptions
+create table public.user_subscriptions (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.profiles(id) on delete cascade,
+    plan_id uuid not null references public.subscription_plans(id) on delete restrict,
+    status text not null, -- e.g., 'active', 'canceled', 'past_due'
+    current_period_start timestamp with time zone not null,
+    current_period_end timestamp with time zone not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+alter table public.user_subscriptions enable row level security;
+create policy "Users can view their own subscriptions." on public.user_subscriptions for select using (auth.uid() = user_id);
+create policy "Admins can view all subscriptions." on public.user_subscriptions for select using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
+
+
+-- Table for transactions
+create table public.transactions (
+    id uuid primary key default gen_random_uuid(),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    user_id uuid not null references public.profiles(id) on delete cascade,
+    amount numeric(10,2) not null,
+    status text not null, -- 'pending', 'completed', 'failed'
+    transaction_type text not null, -- 'purchase', 'subscription', 'topup'
+    book_id uuid references public.books(id) on delete set null,
+    subscription_plan_id uuid references public.subscription_plans(id) on delete set null,
     mpesa_code text
 );
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
--- Add policies for transactions table
-CREATE POLICY "Users can view their own transactions." ON public.transactions FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Admins can view all transactions." ON public.transactions FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.transactions enable row level security;
+create policy "Users can view their own transactions." on public.transactions for select using (auth.uid() = user_id);
+create policy "Admins can view all transactions." on public.transactions for select using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
 
 
--- Create devotionals table
-CREATE TABLE public.devotionals (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    message text NOT NULL,
-    author_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+-- Table for devotionals
+create table public.devotionals (
+    id uuid primary key default gen_random_uuid(),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    message text not null,
+    author_id uuid references public.profiles(id) on delete set null,
     scheduled_for timestamp with time zone,
     sent_at timestamp with time zone
 );
-ALTER TABLE public.devotionals ENABLE ROW LEVEL SECURITY;
--- Add policies for devotionals table
-CREATE POLICY "Devotionals are public." ON public.devotionals FOR SELECT USING (true);
-CREATE POLICY "Admins can manage devotionals." ON public.devotionals FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
+alter table public.devotionals enable row level security;
+create policy "Devotionals are public." on public.devotionals for select using (true);
+create policy "Admins can manage devotionals." on public.devotionals for all using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
+
+
+-- Table for notifications
+create table public.notifications (
+    id uuid primary key default gen_random_uuid(),
+    created_by uuid references public.profiles(id) on delete set null,
+    sent_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    title text not null,
+    message text not null,
+    target_audience text not null -- e.g., 'all', 'subscribers'
 );
+alter table public.notifications enable row level security;
+create policy "Notifications are public." on public.notifications for select using (true);
+create policy "Admins can manage notifications." on public.notifications for all using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
 
-
--- Create notifications table
-CREATE TABLE public.notifications (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    title text NOT NULL,
-    message text NOT NULL,
-    target_audience text NOT NULL, -- e.g., 'all', 'purchased'
-    created_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
-    sent_at timestamp with time zone DEFAULT now() NOT NULL
+-- Table for user notifications status (junction table)
+create table public.user_notifications (
+    user_id uuid not null references public.profiles(id) on delete cascade,
+    notification_id uuid not null references public.notifications(id) on delete cascade,
+    read_at timestamp with time zone,
+    primary key(user_id, notification_id)
 );
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
--- Add policies for notifications table
-CREATE POLICY "Notifications are public for now, can be refined later." ON public.notifications FOR SELECT USING (true);
-CREATE POLICY "Admins can manage notifications." ON public.notifications FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.user_notifications enable row level security;
+create policy "Users can manage their own notification statuses." on public.user_notifications for all using (auth.uid() = user_id);
 
 
--- Create activity_logs table for admin actions
-CREATE TABLE public.activity_logs (
-    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    timestamp timestamp with time zone DEFAULT now() NOT NULL,
-    admin_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    action text NOT NULL,
+-- Table for admin activity logs
+create table public.activity_logs (
+    id bigserial primary key,
+    timestamp timestamp with time zone default timezone('utc'::text, now()) not null,
+    admin_id uuid not null references public.profiles(id) on delete cascade,
+    action text not null,
     details text
 );
-ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
--- Add policies for activity_logs table
-CREATE POLICY "Admins can view and create activity logs." ON public.activity_logs FOR ALL USING (
-    (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-);
+alter table public.activity_logs enable row level security;
+create policy "Admins can view activity logs." on public.activity_logs for select using (exists (select 1 from profiles where id = auth.uid() and is_admin = true));
+
+
+-- Set up Storage!
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values 
+    ('book_thumbnails', 'book_thumbnails', true, 5242880, '{"image/jpeg","image/png","image/webp"}'),
+    ('book_content', 'book_content', false, 52428800, '{"application/pdf","application/epub+zip"}'),
+    ('avatars', 'avatars', true, 1048576, '{"image/jpeg","image/png","image/webp"}');
+
+-- RLS policies for Avatars
+create policy "Avatar images are publicly accessible." on storage.objects
+  for select using (bucket_id = 'avatars');
+
+create policy "Anyone can upload an avatar." on storage.objects
+  for insert with check (bucket_id = 'avatars');
+
+create policy "Anyone can update their own avatar." on storage.objects
+  for update using (auth.uid() = owner) with check (bucket_id = 'avatars');
+
+-- RLS policies for Book Thumbnails (assuming admins upload)
+create policy "Book thumbnails are publicly accessible." on storage.objects
+  for select using (bucket_id = 'book_thumbnails');
+
+create policy "Admins can manage book thumbnails." on storage.objects
+  for all using (
+    bucket_id = 'book_thumbnails' and
+    exists (select 1 from profiles where id = auth.uid() and is_admin = true)
+  );
+
+-- RLS policies for Book Content
+create policy "Admins can manage book content." on storage.objects
+  for all using (
+    bucket_id = 'book_content' and
+    exists (select 1 from profiles where id = auth.uid() and is_admin = true)
+  );
+  
+create policy "Users can read content for books they own." on storage.objects
+ for select using (
+    bucket_id = 'book_content' and
+    exists (
+        select 1 from user_books 
+        where user_books.user_id = auth.uid() and user_books.book_id::text = (storage.foldername(name))[1]
+    )
+ );
+

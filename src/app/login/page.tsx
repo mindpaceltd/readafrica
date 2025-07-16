@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 
 export default function LoginPage() {
@@ -53,7 +54,7 @@ export default function LoginPage() {
 
     toast({
         title: "Login Successful!",
-        description: "Redirecting to your dashboard...",
+        description: "Redirecting...",
         className: 'bg-green-600 border-green-600 text-white',
     });
 
@@ -99,7 +100,12 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link href="/forgot-password" passHref className="text-sm text-primary hover:underline">
+                  Forgot?
+                </Link>
+              </div>
                <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input 
@@ -116,6 +122,12 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
+            <div className="text-center text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Link href="/signup" className="text-primary hover:underline">
+                    Sign Up
+                </Link>
+            </div>
           </form>
         </CardContent>
       </Card>
