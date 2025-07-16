@@ -23,14 +23,15 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Textarea } from "./ui/textarea"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { Book } from "@/lib/data"
-import { useState, useEffect } from "react"
+import { Book, books } from "@/lib/data"
+import { useState, useEffect, useMemo } from "react"
 import { UploadCloud, X } from "lucide-react"
 import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Badge } from "./ui/badge"
 import { Separator } from "./ui/separator"
 import { ScrollArea } from "./ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
 type BookFormProps = {
   open: boolean;
@@ -45,6 +46,7 @@ const initialFormState = {
     purchaseType: "purchase",
     isFeatured: false,
     tags: [] as string[],
+    category: "",
     status: 'draft' as 'published' | 'draft',
     seoTitle: "",
     seoDescription: "",
@@ -55,6 +57,11 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   const [formData, setFormData] = useState(initialFormState);
   const [currentTag, setCurrentTag] = useState('');
 
+  const availableCategories = useMemo(() => {
+    const categories = new Set(books.map(b => b.category).filter(Boolean));
+    return Array.from(categories);
+  }, []);
+
   useEffect(() => {
     if (open && book) {
       setFormData({
@@ -64,6 +71,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
         purchaseType: book.isSubscription ? 'subscription' : 'purchase',
         isFeatured: book.isFeatured || false,
         tags: book.tags || [],
+        category: book.category || "",
         status: book.status || 'draft',
         seoTitle: book.seoTitle || '',
         seoDescription: book.seoDescription || '',
@@ -112,6 +120,19 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" placeholder="A short summary of the book" rows={3} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} />
       </div>
+       <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCategories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
             <Label htmlFor="price">Price (KES)</Label>
@@ -223,19 +244,19 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[625px] grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90vh]">
-          <DialogHeader className="p-6 pb-0">
+        <DialogContent className="sm:max-w-[625px] p-0">
+          <DialogHeader className="p-6 pb-4">
             <DialogTitle>{book ? "Edit Book" : "Add New Book"}</DialogTitle>
             <DialogDescription>
               Fill in the details below. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="overflow-y-auto">
-            <div className="p-6 pt-0">
+          <ScrollArea className="max-h-[70vh] overflow-y-auto">
+            <div className="px-6 pb-6">
               {formContent}
             </div>
           </ScrollArea>
-          <DialogFooter className="p-6 pt-0 border-t">
+          <DialogFooter className="p-6 pt-4 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
           </DialogFooter>
@@ -253,7 +274,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
             Fill in the details below. Click save when you're done.
           </DrawerDescription>
         </DrawerHeader>
-        <ScrollArea className="overflow-y-auto">
+        <ScrollArea className="overflow-y-auto max-h-[75vh]">
             <div className="p-4">{formContent}</div>
         </ScrollArea>
         <DrawerFooter className="pt-2 border-t">

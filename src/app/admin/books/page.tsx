@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { books, type Book } from "@/lib/data";
-import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
@@ -73,9 +73,9 @@ export default function ManageBooksPage() {
                 </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Category</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead className="hidden md:table-cell">Reads</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -106,6 +106,12 @@ export default function ManageBooksPage() {
                           {book.status === 'published' ? 'Published' : 'Draft'}
                       </Badge>
                   </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <div className="flex items-center gap-2">
+                        <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                        <span>{book.category}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={book.isSubscription ? "secondary" : "outline"} className="flex items-center gap-1 w-fit">
                       {book.isSubscription ? <BookLock /> : <FileText />}
@@ -113,7 +119,6 @@ export default function ManageBooksPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{book.price}</TableCell>
-                  <TableCell className="hidden md:table-cell">{book.readCount}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
