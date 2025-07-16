@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
+import { UploadCloud } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 // Helper function to convert HSL string to a hex color
 const hslToHex = (h: number, s: number, l: number): string => {
@@ -168,10 +170,44 @@ export default function SettingsPage() {
                 </CardContent>
                 </Card>
             </TabsContent>
-            <TabsContent value="general">
+            <TabsContent value="general" className="space-y-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle>General Settings</CardTitle>
+                        <CardTitle>Site Identity & SEO</CardTitle>
+                         <CardDescription>Manage your site's public-facing information.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="site-title">Site Title</Label>
+                            <Input id="site-title" defaultValue="Prophetic Reads" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="site-description">Site Description</Label>
+                            <Textarea id="site-description" defaultValue="E-books and daily devotionals by Dr. Climate Wiseman." />
+                        </div>
+                         <div className="space-y-2">
+                            <Label>Site Logo</Label>
+                            <div className="flex items-center gap-4">
+                                <div className="w-20 h-20 rounded-md bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                                    Current
+                                </div>
+                                 <div className="flex-1">
+                                    <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <UploadCloud className="w-8 h-8 text-muted-foreground"/>
+                                            <p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p>
+                                        </div>
+                                        <Input id="logo-upload" type="file" className="hidden" />
+                                    </label>
+                                 </div>
+                            </div>
+                        </div>
+                         <Button>Save SEO Info</Button>
+                    </CardContent>
+                 </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Application Settings</CardTitle>
                         <CardDescription>
                             Manage general application configurations.
                         </CardDescription>
@@ -215,4 +251,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
