@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
@@ -29,6 +29,7 @@ import { BookForm } from "@/components/book-form";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/database.types";
 import { useToast } from "@/hooks/use-toast";
+import { duplicateBook } from "@/app/actions";
 
 type BookWithCategory = Tables<'books'> & {
   categories: { name: string } | null;
@@ -88,6 +89,16 @@ export default function ManageBooksPage() {
     } else {
       toast({ title: "Book deleted successfully" });
       fetchBooks(); // Refresh the list
+    }
+  }
+
+  const handleDuplicate = async (bookId: string) => {
+    try {
+        await duplicateBook(bookId);
+        toast({ title: "Book duplicated successfully", description: "A new draft has been created." });
+        fetchBooks();
+    } catch (error) {
+        toast({ title: "Error duplicating book", description: (error as Error).message, variant: "destructive" });
     }
   }
 
@@ -175,6 +186,10 @@ export default function ManageBooksPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => handleEdit(book)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleDuplicate(book.id)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Duplicate
+                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleDelete(book.id)} className="text-destructive">Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

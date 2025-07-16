@@ -52,8 +52,6 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
   
   const navItems = [
       { href: "/books", label: "Books" },
-      { href: "/subscriptions", label: "Subscriptions" },
-      { href: "/devotionals", label: "Devotionals" },
       { href: "/volunteer", label: "Volunteer" },
   ]
 
@@ -84,6 +82,12 @@ export function Header({ siteTitle, logoUrl, user, isAdmin }: HeaderProps) {
                 <Link href={dashboardHref}><LayoutDashboard className="mr-2"/>Dashboard</Link>
             </Button>
           )}
+           <Button variant="secondary" asChild>
+                <Link href="/subscriptions">
+                    <Gem className="mr-2" />
+                    Subscribe
+                </Link>
+            </Button>
            <Button className="text-primary-foreground bg-primary hover:bg-primary/90" onClick={user ? handleLogout : handleLogin}>
              {user ? <span>Logout</span> : <span>Login</span>}
            </Button>

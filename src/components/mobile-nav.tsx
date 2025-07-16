@@ -90,7 +90,6 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin }: MobileNa
          <NavLink href="/books"><BookOpen/>Books</NavLink>
          {user && <NavLink href={dashboardHref}><LayoutDashboard/>Dashboard</NavLink>}
          <NavLink href="/subscriptions"><Gem />Subscriptions</NavLink>
-         <NavLink href="/devotionals"><Sparkles/>Devotionals</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
       </nav>
       <div className="mt-auto">
