@@ -24,18 +24,24 @@ const hslToHex = (h: number, s: number, l: number): string => {
   return `#${f(0)}${f(8)}${f(4)}`;
 };
 
+
 // Helper function to convert hex color to an HSL string
 const hexToHsl = (hex: string): string => {
     if (!hex || hex.length < 7) return "0 0% 0%";
+
+    // Convert hex to RGB
     let r = parseInt(hex.substring(1, 3), 16) / 255;
     let g = parseInt(hex.substring(3, 5), 16) / 255;
     let b = parseInt(hex.substring(5, 7), 16) / 255;
 
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    // Find min and max values of R, G, B
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    
     let h = 0, s = 0, l = (max + min) / 2;
 
     if (max !== min) {
-        let d = max - min;
+        const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
             case r: h = (g - b) / d + (g < b ? 6 : 0); break;
