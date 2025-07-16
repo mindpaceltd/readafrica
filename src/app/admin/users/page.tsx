@@ -1,9 +1,9 @@
 // src/app/admin/users/page.tsx
+'use client';
+
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
   } from "@/components/ui/card";
 import {
     Table,
@@ -25,16 +25,31 @@ import {
   } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import type { Tables } from "@/lib/database.types";
+import { useToast } from "@/hooks/use-toast";
 
-const users = [
-    { id: 1, phone: '+254712345678', name: 'John Doe', joined: '2023-10-26', purchases: 3, balance: 'KES 150.00' },
-    { id: 2, phone: '+254722345678', name: 'Jane Smith', joined: '2023-10-25', purchases: 1, balance: 'KES 50.00' },
-    { id: 3, phone: '+254733345678', name: 'Peter Jones', joined: '2023-10-25', purchases: 0, balance: 'KES 1200.00' },
-    { id: 4, phone: '+254744345678', name: 'Mary Anne', joined: '2023-10-24', purchases: 5, balance: 'KES 0.00' },
-    { id: 5, phone: '+254755345678', name: 'Chris Green', joined: '2023-10-23', purchases: 2, balance: 'KES 350.50' },
-];
-  
 export default function UsersPage() {
+    const supabase = createClient();
+    const { toast } = useToast();
+    const [users, setUsers] = useState<Tables<'profiles'>[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            const { data, error } = await supabase.from('profiles').select('*');
+            if (error) {
+                toast({ title: 'Error fetching users', description: error.message, variant: 'destructive' });
+            } else {
+                setUsers(data || []);
+            }
+            setLoading(false);
+        };
+        fetchUsers();
+    }, [supabase, toast]);
+  
     return (
         <div>
             <div className="mb-8">
@@ -48,33 +63,32 @@ export default function UsersPage() {
                         <TableRow>
                             <TableHead>User</TableHead>
                             <TableHead>Phone Number</TableHead>
-                            <TableHead>Purchases</TableHead>
+                            <TableHead>Role</TableHead>
                             <TableHead>Balance</TableHead>
-                            <TableHead>Date Joined</TableHead>
                             <TableHead><span className="sr-only">Actions</span></TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {users.map((user) => (
+                        {loading && <TableRow><TableCell colSpan={5} className="text-center">Loading users...</TableCell></TableRow>}
+                        {!loading && users.map((user) => (
                             <TableRow key={user.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-9 w-9">
-                                            <AvatarImage src={`https://placehold.co/100x100.png`} alt="Avatar" />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            <AvatarImage src={user.avatar_url || `https://placehold.co/100x100.png`} alt="Avatar" />
+                                            <AvatarFallback>{user.full_name?.charAt(0) || 'U'}</AvatarFallback>
                                         </Avatar>
                                         <div className="grid gap-0.5">
-                                            <p className="font-medium">{user.name}</p>
+                                            <p className="font-medium">{user.full_name || 'N/A'}</p>
                                             <p className="text-xs text-muted-foreground">User ID: {user.id}</p>
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell>{user.phone}</TableCell>
+                                <TableCell>{user.phone_number || 'Not provided'}</TableCell>
                                 <TableCell>
-                                    <Badge variant="outline">{user.purchases} books</Badge>
+                                    <Badge variant={user.is_admin ? 'default' : 'secondary'}>{user.is_admin ? 'Admin' : 'User'}</Badge>
                                 </TableCell>
-                                <TableCell className="font-medium">{user.balance}</TableCell>
-                                <TableCell>{user.joined}</TableCell>
+                                <TableCell className="font-medium">KES {user.balance.toFixed(2)}</TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -90,7 +104,6 @@ export default function UsersPage() {
                                         <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem>View Details</DropdownMenuItem>
-                                        <DropdownMenuItem>Manage Book Access</DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem className="text-destructive">Suspend User</DropdownMenuItem>
                                         </DropdownMenuContent>

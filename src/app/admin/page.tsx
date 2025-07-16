@@ -5,9 +5,41 @@ import {
     CardHeader,
     CardTitle,
   } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
 import { DollarSign, Users, BookOpen, MessageSquare } from "lucide-react";
+
+async function getStats() {
+    const supabase = createClient();
+
+    const { data: revenue, error: revenueError } = await supabase
+        .from('transactions')
+        .select('amount')
+        .eq('status', 'completed');
+
+    const { data: users, error: usersError } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact' });
+
+    const { data: sales, error: salesError } = await supabase
+        .from('transactions')
+        .select('id', { count: 'exact' })
+        .eq('status', 'completed')
+        .eq('transaction_type', 'purchase');
+
+    if (revenueError) console.error("Revenue Error:", revenueError.message);
+    if (usersError) console.error("Users Error:", usersError.message);
+    if (salesError) console.error("Sales Error:", salesError.message);
+
+    const totalRevenue = revenue?.reduce((sum, current) => sum + current.amount, 0) || 0;
+    const totalUsers = users?.length || 0;
+    const totalSales = sales?.length || 0;
+
+    return { totalRevenue, totalUsers, totalSales };
+}
   
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+    const { totalRevenue, totalUsers, totalSales } = await getStats();
+
     return (
       <div>
         <h1 className="text-3xl font-headline text-primary mb-8">Admin Dashboard</h1>
@@ -20,24 +52,18 @@ export default function AdminDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KES 45,231.89</div>
-              <p className="text-xs text-muted-foreground">
-                +20.1% from last month
-              </p>
+              <div className="text-2xl font-bold">KES {totalRevenue.toFixed(2)}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                New Users
+                Total Users
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+2,350</div>
-              <p className="text-xs text-muted-foreground">
-                +180.1% from last month
-              </p>
+              <div className="text-2xl font-bold">+{totalUsers}</div>
             </CardContent>
           </Card>
           <Card>
@@ -46,10 +72,7 @@ export default function AdminDashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
-              <p className="text-xs text-muted-foreground">
-                +19% from last month
-              </p>
+              <div className="text-2xl font-bold">+{totalSales}</div>
             </CardContent>
           </Card>
           <Card>
@@ -62,13 +85,12 @@ export default function AdminDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">+573</div>
               <p className="text-xs text-muted-foreground">
-                +201 since last hour
+                (Static Data)
               </p>
             </CardContent>
           </Card>
         </div>
         <div className="mt-8">
-            {/* More dashboard components like recent transactions or charts can go here */}
             <Card>
                 <CardHeader>
                     <CardTitle>Recent Activity</CardTitle>

@@ -23,69 +23,94 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Textarea } from "./ui/textarea"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { Book, books } from "@/lib/data"
 import { useState, useEffect, useMemo } from "react"
-import { UploadCloud, X } from "lucide-react"
+import { UploadCloud, X, Loader2 } from "lucide-react"
 import { Switch } from "./ui/switch"
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Badge } from "./ui/badge"
 import { Separator } from "./ui/separator"
 import { ScrollArea } from "./ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { createClient } from "@/lib/supabase/client"
+import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types"
+import { useToast } from "@/hooks/use-toast"
+
+type BookWithCategory = Tables<'books'> & {
+  categories: { name: string } | null;
+};
 
 type BookFormProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  book?: Book | null;
+  book?: BookWithCategory | null;
+  onFormSubmit: () => void;
 }
 
 const initialFormState = {
     title: "",
     description: "",
-    price: "",
-    purchaseType: "purchase",
-    isFeatured: false,
+    price: 0,
+    is_subscription: false,
+    is_featured: false,
     tags: [] as string[],
-    category: "",
+    category_id: null as number | null,
     status: 'draft' as 'published' | 'draft',
-    seoTitle: "",
-    seoDescription: "",
+    seo_title: "",
+    seo_description: "",
+    thumbnail_url: "",
+    full_content_url: "",
+    data_ai_hint: "",
 }
 
-export function BookForm({ open, onOpenChange, book }: BookFormProps) {
+export function BookForm({ open, onOpenChange, book, onFormSubmit }: BookFormProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [formData, setFormData] = useState(initialFormState);
-  const [currentTag, setCurrentTag] = useState('');
+  const supabase = createClient();
+  const { toast } = useToast();
 
-  const availableCategories = useMemo(() => {
-    const categories = new Set(books.map(b => b.category).filter(Boolean));
-    return Array.from(categories);
-  }, []);
+  const [formData, setFormData] = useState<typeof initialFormState>(initialFormState);
+  const [currentTag, setCurrentTag] = useState('');
+  const [categories, setCategories] = useState<Tables<'categories'>[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [contentFile, setContentFile] = useState<File | null>(null);
+
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+        const { data, error } = await supabase.from('categories').select('*');
+        if (data) setCategories(data);
+    }
+    fetchCategories();
+  }, [supabase]);
+
 
   useEffect(() => {
     if (open && book) {
       setFormData({
         title: book.title,
         description: book.description || "",
-        price: book.price.replace('KES ', ''),
-        purchaseType: book.isSubscription ? 'subscription' : 'purchase',
-        isFeatured: book.isFeatured || false,
+        price: book.price,
+        is_subscription: book.is_subscription,
+        is_featured: book.is_featured,
         tags: book.tags || [],
-        category: book.category || "",
-        status: book.status || 'draft',
-        seoTitle: book.seoTitle || '',
-        seoDescription: book.seoDescription || '',
+        category_id: book.category_id,
+        status: book.status as 'published' | 'draft',
+        seo_title: book.seo_title || '',
+        seo_description: book.seo_description || '',
+        thumbnail_url: book.thumbnail_url || '',
+        full_content_url: book.full_content_url || '',
+        data_ai_hint: book.data_ai_hint || '',
       });
     } else {
-      // Reset form when adding a new book, or when closing the dialog
       setFormData(initialFormState);
     }
+     setCoverFile(null);
+     setContentFile(null);
   }, [book, open]);
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
       setFormData(prev => ({...prev, [field]: value}));
   }
-
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -103,11 +128,68 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
   };
 
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle book creation/update logic here
-    console.log("Submitting book:", formData);
-    onOpenChange(false);
+    setIsSubmitting(true);
+    
+    let thumbnail_url = book?.thumbnail_url || '';
+    if (coverFile) {
+        const { data, error } = await supabase.storage
+            .from('book-covers')
+            .upload(`${Date.now()}_${coverFile.name}`, coverFile);
+        if (error) {
+            toast({title: "Cover Upload Failed", description: error.message, variant: "destructive"});
+            setIsSubmitting(false);
+            return;
+        }
+        const { data: { publicUrl } } = supabase.storage.from('book-covers').getPublicUrl(data.path);
+        thumbnail_url = publicUrl;
+    }
+    
+    let full_content_url = book?.full_content_url || '';
+    if (contentFile) {
+        const { data, error } = await supabase.storage
+            .from('book-content')
+            .upload(`${Date.now()}_${contentFile.name}`, contentFile);
+        if (error) {
+            toast({title: "Content Upload Failed", description: error.message, variant: "destructive"});
+            setIsSubmitting(false);
+            return;
+        }
+        const { data: { publicUrl } } = supabase.storage.from('book-content').getPublicUrl(data.path);
+        full_content_url = publicUrl;
+    }
+
+    const bookData = {
+        ...formData,
+        price: Number(formData.price),
+        thumbnail_url,
+        full_content_url
+    }
+
+    if (book) {
+        // Update
+        const { error } = await supabase.from('books').update(bookData).eq('id', book.id);
+        if (error) {
+             toast({title: "Update Failed", description: error.message, variant: "destructive"});
+        } else {
+            toast({title: "Book updated successfully"});
+            onFormSubmit();
+            onOpenChange(false);
+        }
+    } else {
+        // Create
+        const { error } = await supabase.from('books').insert(bookData);
+        if (error) {
+            toast({title: "Creation Failed", description: error.message, variant: "destructive"});
+        } else {
+            toast({title: "Book created successfully"});
+            onFormSubmit();
+            onOpenChange(false);
+        }
+    }
+
+    setIsSubmitting(false);
   }
 
   const formContent = (
@@ -122,13 +204,13 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
       </div>
        <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+            <Select value={formData.category_id?.toString()} onValueChange={(value) => handleInputChange('category_id', parseInt(value))}>
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {availableCategories.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                {categories.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -140,7 +222,7 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
         </div>
         <div className="space-y-2">
           <Label>Purchase Type</Label>
-          <RadioGroup value={formData.purchaseType} onValueChange={(value) => handleInputChange('purchaseType', value)} className="flex pt-2 gap-4">
+          <RadioGroup value={formData.is_subscription ? 'subscription' : 'purchase'} onValueChange={(value) => handleInputChange('is_subscription', value === 'subscription')} className="flex pt-2 gap-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="purchase" id="r1" />
               <Label htmlFor="r1">Purchase</Label>
@@ -161,8 +243,9 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
                         <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground"/>
                         <p className="text-sm text-muted-foreground"><span className="font-semibold">Upload Cover</span></p>
                         <p className="text-xs text-muted-foreground">PNG, JPG</p>
+                        {coverFile && <p className="text-xs text-green-500 mt-1 truncate">{coverFile.name}</p>}
                     </div>
-                    <Input id="cover-upload" type="file" className="hidden" />
+                    <Input id="cover-upload" type="file" className="hidden" onChange={(e) => setCoverFile(e.target.files ? e.target.files[0] : null)}/>
                 </label>
             </div> 
             <div className="flex items-center justify-center w-full">
@@ -171,8 +254,9 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
                         <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground"/>
                         <p className="text-sm text-muted-foreground"><span className="font-semibold">Upload Content</span></p>
                         <p className="text-xs text-muted-foreground">PDF, EPUB</p>
+                         {contentFile && <p className="text-xs text-green-500 mt-1 truncate">{contentFile.name}</p>}
                     </div>
-                    <Input id="content-upload" type="file" className="hidden" />
+                    <Input id="content-upload" type="file" className="hidden" onChange={(e) => setContentFile(e.target.files ? e.target.files[0] : null)} />
                 </label>
             </div> 
         </div>
@@ -182,11 +266,11 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
              <h3 className="text-lg font-medium">SEO & Discovery</h3>
              <div className="space-y-2">
                 <Label htmlFor="seo-title">SEO Title</Label>
-                <Input id="seo-title" placeholder="A catchy title for search engines" value={formData.seoTitle} onChange={(e) => handleInputChange('seoTitle', e.target.value)} />
+                <Input id="seo-title" placeholder="A catchy title for search engines" value={formData.seo_title} onChange={(e) => handleInputChange('seo_title', e.target.value)} />
             </div>
              <div className="space-y-2">
                 <Label htmlFor="seo-description">SEO Description</Label>
-                <Textarea id="seo-description" placeholder="A brief description for search results" rows={2} value={formData.seoDescription} onChange={(e) => handleInputChange('seoDescription', e.target.value)} />
+                <Textarea id="seo-description" placeholder="A brief description for search results" rows={2} value={formData.seo_description} onChange={(e) => handleInputChange('seo_description', e.target.value)} />
             </div>
              <div className="space-y-2">
                 <Label htmlFor="tags">Tags</Label>
@@ -235,21 +319,23 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
                         Display this book prominently on the home page.
                     </p>
                 </div>
-                <Switch checked={formData.isFeatured} onCheckedChange={(value) => handleInputChange('isFeatured', value)} aria-label="Featured book" />
+                <Switch checked={formData.is_featured} onCheckedChange={(value) => handleInputChange('is_featured', value)} aria-label="Featured book" />
             </div>
         </div>
     </form>
   );
+
+  const title = book ? "Edit Book" : "Add New Book";
+  const description = "Fill in the details below. Click save when you're done.";
+  const submitButtonText = book ? "Save Changes" : "Create Book";
 
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[625px] p-0">
           <DialogHeader className="p-6 pb-4">
-            <DialogTitle>{book ? "Edit Book" : "Add New Book"}</DialogTitle>
-            <DialogDescription>
-              Fill in the details below. Click save when you're done.
-            </DialogDescription>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh] overflow-y-auto">
             <div className="px-6 pb-6">
@@ -258,7 +344,10 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
           </ScrollArea>
           <DialogFooter className="p-6 pt-4 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
+            <Button type="submit" form="book-form" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {submitButtonText}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -269,16 +358,17 @@ export function BookForm({ open, onOpenChange, book }: BookFormProps) {
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>{book ? "Edit Book" : "Add New Book"}</DrawerTitle>
-          <DrawerDescription>
-            Fill in the details below. Click save when you're done.
-          </DrawerDescription>
+          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerDescription>{description}</DrawerDescription>
         </DrawerHeader>
         <ScrollArea className="overflow-y-auto max-h-[75vh]">
             <div className="p-4">{formContent}</div>
         </ScrollArea>
         <DrawerFooter className="pt-2 border-t">
-            <Button type="submit" form="book-form">{book ? "Save Changes" : "Create Book"}</Button>
+            <Button type="submit" form="book-form" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {submitButtonText}
+            </Button>
             <DrawerClose asChild>
                 <Button variant="outline">Cancel</Button>
             </DrawerClose>

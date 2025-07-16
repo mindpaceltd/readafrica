@@ -1,7 +1,7 @@
 // src/app/admin/books/categories/page.tsx
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,30 +15,61 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusCircle, Trash2, Edit } from "lucide-react";
-
-const initialCategories = [
-    { id: 1, name: "Spiritual Growth", bookCount: 1 },
-    { id: 2, name: "Prophetic Teaching", bookCount: 2 },
-    { id: 3, name: "Financial Freedom", bookCount: 0 },
-    { id: 4, name: "Personal Development", bookCount: 0 },
-];
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import type { Tables } from "@/lib/database.types";
 
 export default function BookCategoriesPage() {
-    const [categories, setCategories] = useState(initialCategories);
+    const supabase = createClient();
+    const { toast } = useToast();
+    const [categories, setCategories] = useState<Tables<'categories'>[]>([]);
+    const [loading, setLoading] = useState(true);
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleAddCategory = (e: React.FormEvent) => {
+    const fetchCategories = async () => {
+        setLoading(true);
+        const { data, error } = await supabase.from('categories').select('*').order('name');
+        if (error) {
+            toast({ title: "Error fetching categories", description: error.message, variant: 'destructive' });
+        } else {
+            setCategories(data || []);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newCategoryName.trim()) {
-            const newCategory = {
-                id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1,
-                name: newCategoryName,
-                bookCount: 0,
-            };
-            setCategories([...categories, newCategory]);
-            setNewCategoryName('');
+            setIsSubmitting(true);
+            const { error } = await supabase.from('categories').insert({ name: newCategoryName });
+            if (error) {
+                toast({ title: "Error adding category", description: error.message, variant: 'destructive' });
+            } else {
+                toast({ title: "Category added successfully" });
+                setNewCategoryName('');
+                fetchCategories();
+            }
+            setIsSubmitting(false);
         }
     };
+
+    const handleDeleteCategory = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this category?")) return;
+        
+        const { error } = await supabase.from('categories').delete().eq('id', id);
+        if (error) {
+            toast({ title: "Error deleting category", description: error.message, variant: 'destructive' });
+        } else {
+            toast({ title: "Category deleted successfully" });
+            fetchCategories();
+        }
+    };
+
 
     return (
         <div>
@@ -57,18 +88,20 @@ export default function BookCategoriesPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Category Name</TableHead>
-                                        <TableHead>Book Count</TableHead>
+                                        <TableHead>Created At</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {categories.map((category) => (
+                                    {loading && <TableRow><TableCell colSpan={3} className="text-center">Loading...</TableCell></TableRow>}
+                                    {!loading && categories.map((category) => (
                                         <TableRow key={category.id}>
                                             <TableCell className="font-medium">{category.name}</TableCell>
-                                            <TableCell>{category.bookCount}</TableCell>
+                                            <TableCell>{new Date(category.created_at).toLocaleDateString()}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon"><Edit className="h-4 w-4"/></Button>
-                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCategory(category.id)}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -95,9 +128,9 @@ export default function BookCategoriesPage() {
                                         required 
                                     />
                                 </div>
-                                <Button type="submit" className="w-full">
+                                <Button type="submit" className="w-full" disabled={isSubmitting}>
                                     <PlusCircle className="mr-2" />
-                                    Add Category
+                                    {isSubmitting ? "Adding..." : "Add Category"}
                                 </Button>
                             </form>
                         </CardContent>

@@ -1,10 +1,9 @@
 // src/app/admin/transactions/page.tsx
+'use client';
+
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
   } from "@/components/ui/card";
   import {
     Table,
@@ -15,17 +14,48 @@ import {
     TableRow,
   } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-  
-  const transactions = [
-    { id: 'txn_1', user: '+254712345678', book: 'Breaking Free', amount: 'KES 500', status: 'Completed', date: '2023-10-26' },
-    { id: 'txn_2', user: '+254722345678', book: 'Divine Pendant Wisdom', amount: 'KES 450', status: 'Completed', date: '2023-10-25' },
-    { id: 'txn_3', user: '+254733345678', book: 'The Prophetic Voice', amount: 'KES 550', status: 'Pending', date: '2023-10-25' },
-    { id: 'txn_4', user: '+254744345678', book: 'Breaking Free', amount: 'KES 500', status: 'Failed', date: '2023-10-24' },
-    { id: 'txn_5', user: '+254755345678', book: 'The Prophetic Voice', amount: 'KES 550', status: 'Completed', date: '2023-10-23' },
-  ];
-  
-  export default function TransactionsPage() {
+type Transaction = {
+    id: string;
+    created_at: string;
+    amount: number;
+    status: string;
+    profiles: {
+        full_name: string | null;
+        phone_number: string | null;
+    } | null;
+    books: {
+        title: string;
+    } | null;
+};
+
+export default function TransactionsPage() {
+    const supabase = createClient();
+    const { toast } = useToast();
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('transactions')
+                .select('id, created_at, amount, status, profiles(full_name, phone_number), books(title)')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                toast({ title: 'Error fetching transactions', description: error.message, variant: 'destructive' });
+            } else {
+                setTransactions(data as Transaction[] || []);
+            }
+            setLoading(false);
+        };
+        fetchTransactions();
+    }, [supabase, toast]);
+
     return (
       <div>
         <div className="mb-8">
@@ -38,29 +68,30 @@ import { Badge } from "@/components/ui/badge";
                 <TableHeader>
                 <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Book</TableHead>
+                    <TableHead>Item</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {transactions.map((txn) => (
+                {loading && <TableRow><TableCell colSpan={5} className="text-center">Loading transactions...</TableCell></TableRow>}
+                {!loading && transactions.map((txn) => (
                     <TableRow key={txn.id}>
-                    <TableCell className="font-medium">{txn.user}</TableCell>
-                    <TableCell>{txn.book}</TableCell>
-                    <TableCell className="text-right">{txn.amount}</TableCell>
+                    <TableCell className="font-medium">{txn.profiles?.full_name || txn.profiles?.phone_number || 'N/A'}</TableCell>
+                    <TableCell>{txn.books?.title || 'Subscription'}</TableCell>
+                    <TableCell className="text-right">KES {txn.amount.toFixed(2)}</TableCell>
                     <TableCell>
                         <Badge
                         variant={
-                            txn.status === 'Completed' ? 'default' : txn.status === 'Pending' ? 'secondary' : 'destructive'
+                            txn.status === 'completed' ? 'default' : txn.status === 'pending' ? 'secondary' : 'destructive'
                         }
-                        className={txn.status === 'Completed' ? 'bg-green-600' : ''}
+                        className={txn.status === 'completed' ? 'bg-green-600' : ''}
                         >
                         {txn.status}
                         </Badge>
                     </TableCell>
-                    <TableCell>{txn.date}</TableCell>
+                    <TableCell>{new Date(txn.created_at).toLocaleString()}</TableCell>
                     </TableRow>
                 ))}
                 </TableBody>
@@ -69,4 +100,4 @@ import { Badge } from "@/components/ui/badge";
         </Card>
       </div>
     );
-  }
+}

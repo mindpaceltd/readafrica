@@ -10,60 +10,42 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import type { Tables } from "@/lib/database.types";
 
 
-type Plan = {
-    id: string;
-    name: string;
-    price: string;
-    period: 'daily' | 'weekly' | 'monthly' | 'yearly';
-    features: string[];
-    active: boolean;
-};
-
-const initialPlans: Plan[] = [
-    {
-        id: "plan-1",
-        name: "Bronze Tier",
-        price: "500",
-        period: "monthly",
-        features: ["Access to 5 subscription books per month", "Standard support"],
-        active: true
-    },
-    {
-        id: "plan-2",
-        name: "Silver Tier",
-        price: "1000",
-        period: "monthly",
-        features: ["Access to 15 subscription books per month", "Priority support", "Early access to new releases"],
-        active: true
-    },
-    {
-        id: "plan-3",
-        name: "Gold Tier",
-        price: "2000",
-        period: "monthly",
-        features: ["Unlimited access to all subscription books", "24/7 priority support", "Exclusive content and webinars"],
-        active: false
-    },
-]
-
-const initialFormState: Omit<Plan, 'id' | 'active' | 'features'> & { features: string } = {
+const initialFormState: Omit<Tables<'subscription_plans'>, 'id' | 'created_at' | 'active'> = {
     name: '',
-    price: '',
+    price: 0,
     period: 'monthly',
-    features: '',
+    features: [],
 };
 
 export default function SubscriptionPlansPage() {
-  const [plans, setPlans] = useState<Plan[]>(initialPlans);
+  const supabase = createClient();
+  const { toast } = useToast();
+  const [plans, setPlans] = useState<Tables<'subscription_plans'>[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormState);
+  const [featureText, setFeatureText] = useState('');
   
-  // Use a ref to keep track of the next ID to avoid re-renders
-  const nextId = useRef(initialPlans.length + 1);
+  const fetchPlans = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('subscription_plans').select('*').order('price');
+    if (error) {
+        toast({ title: 'Error fetching plans', description: error.message, variant: 'destructive' });
+    } else {
+        setPlans(data || []);
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
+    fetchPlans();
+  }, []);
 
   useEffect(() => {
     if (isEditing && selectedPlanId) {
@@ -73,11 +55,13 @@ export default function SubscriptionPlansPage() {
                 name: planToEdit.name,
                 price: planToEdit.price,
                 period: planToEdit.period,
-                features: planToEdit.features.join('\n'),
+                features: planToEdit.features || [],
             });
+            setFeatureText((planToEdit.features || []).join('\n'));
         }
     } else {
         setFormData(initialFormState);
+        setFeatureText('');
     }
   }, [isEditing, selectedPlanId, plans]);
 
@@ -86,7 +70,7 @@ export default function SubscriptionPlansPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleEditClick = (plan: Plan) => {
+  const handleEditClick = (plan: Tables<'subscription_plans'>) => {
     setIsEditing(true);
     setSelectedPlanId(plan.id);
   };
@@ -96,26 +80,60 @@ export default function SubscriptionPlansPage() {
     setSelectedPlanId(null);
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const featuresArray = formData.features.split('\n').filter(f => f.trim() !== '');
+    const featuresArray = featureText.split('\n').filter(f => f.trim() !== '');
+    
+    const planData = {
+        ...formData,
+        price: Number(formData.price),
+        features: featuresArray,
+    };
+
     if (isEditing && selectedPlanId) {
         // Update existing plan
-        setPlans(plans.map(p => p.id === selectedPlanId ? { ...p, ...formData, id: p.id, features: featuresArray, price: formData.price, active: p.active } : p));
+        const { error } = await supabase.from('subscription_plans').update(planData).eq('id', selectedPlanId);
+         if (error) {
+            toast({ title: "Update failed", description: error.message, variant: 'destructive' });
+        } else {
+            toast({ title: "Plan updated successfully" });
+            fetchPlans();
+        }
     } else {
         // Add new plan
-        const newPlan: Plan = {
-            id: `plan-${nextId.current++}`,
-            ...formData,
-            features: featuresArray,
-            price: formData.price,
-            active: true, // New plans are active by default
-        };
-        setPlans([...plans, newPlan]);
-        setFormData(initialFormState); // Reset form after adding
+        const { error } = await supabase.from('subscription_plans').insert({ ...planData, active: true });
+        if (error) {
+            toast({ title: "Create failed", description: error.message, variant: 'destructive' });
+        } else {
+            toast({ title: "Plan created successfully" });
+            fetchPlans();
+            setFormData(initialFormState);
+            setFeatureText('');
+        }
     }
     setIsEditing(false);
     setSelectedPlanId(null);
+  }
+
+  const handleDelete = async (planId: string) => {
+      if (!confirm("Are you sure you want to delete this plan?")) return;
+      const { error } = await supabase.from('subscription_plans').delete().eq('id', planId);
+      if (error) {
+          toast({ title: "Delete failed", description: error.message, variant: 'destructive' });
+      } else {
+          toast({ title: "Plan deleted" });
+          fetchPlans();
+      }
+  }
+  
+  const toggleActive = async (plan: Tables<'subscription_plans'>) => {
+    const { error } = await supabase.from('subscription_plans').update({ active: !plan.active }).eq('id', plan.id);
+    if (error) {
+        toast({ title: "Update failed", description: error.message, variant: 'destructive' });
+    } else {
+        toast({ title: `Plan ${!plan.active ? 'activated' : 'deactivated'}` });
+        fetchPlans();
+    }
   }
 
 
@@ -132,6 +150,7 @@ export default function SubscriptionPlansPage() {
 
         <div className="grid md:grid-cols-3 gap-8 items-start">
             <div className="md:col-span-2 grid gap-6">
+                {loading && <p>Loading plans...</p>}
                 {plans.map((plan) => (
                     <Card key={plan.id}>
                         <CardHeader className="flex flex-row justify-between items-start">
@@ -143,14 +162,14 @@ export default function SubscriptionPlansPage() {
                              <CardDescription>KES {plan.price}/{plan.period}</CardDescription>
                            </div>
                            <div className="flex items-center gap-2">
-                                <Switch checked={plan.active} onCheckedChange={(checked) => setPlans(plans.map(p => p.id === plan.id ? {...p, active: checked} : p))} aria-label={`Activate ${plan.name} plan`} />
+                                <Switch checked={plan.active} onCheckedChange={() => toggleActive(plan)} aria-label={`Activate ${plan.name} plan`} />
                                 <Button variant="ghost" size="icon" onClick={() => handleEditClick(plan)}><Edit className="h-4 w-4"/></Button>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDelete(plan.id)}><Trash2 className="h-4 w-4"/></Button>
                            </div>
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-2 text-sm text-muted-foreground">
-                                {plan.features.map((feature, fIndex) => (
+                                {plan.features && plan.features.map((feature, fIndex) => (
                                     <li key={fIndex} className="flex items-center gap-2">
                                         <Check className="h-4 w-4 text-green-500" />
                                         <span>{feature}</span>
@@ -195,7 +214,7 @@ export default function SubscriptionPlansPage() {
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="plan-features">Features</Label>
-                            <Textarea id="plan-features" placeholder="Enter features, one per line..." rows={4} value={formData.features} onChange={(e) => handleInputChange('features', e.target.value)} required/>
+                            <Textarea id="plan-features" placeholder="Enter features, one per line..." rows={4} value={featureText} onChange={(e) => setFeatureText(e.target.value)} required/>
                         </div>
                         <div className="flex flex-col gap-2">
                              <Button type="submit" className="w-full">
