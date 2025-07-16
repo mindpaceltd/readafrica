@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 // Helper function to convert hex color to an HSL string, now defined correctly outside the component.
 const hexToHslString = (hex: string): string => {
-    if (!hex.startsWith('#')) return '';
+    if (!hex.startsWith('#') || hex.length !== 7) return '';
     const r = parseInt(hex.slice(1, 3), 16) / 255;
     const g = parseInt(hex.slice(3, 5), 16) / 255;
     const b = parseInt(hex.slice(5, 7), 16) / 255;
@@ -49,15 +49,18 @@ export default function SettingsPage() {
         const getHexFromHslVar = (varName: string) => {
             const hslStr = getComputedStyle(root).getPropertyValue(varName).trim();
             if (!hslStr) return null;
+            
             const [h, s, l] = hslStr.split(' ').map(val => parseFloat(val));
             if (isNaN(h) || isNaN(s) || isNaN(l)) return null;
 
             const s_norm = s / 100;
             const l_norm = l / 100;
+
             const k = (n: number) => (n + h / 30) % 12;
             const a = s_norm * Math.min(l_norm, 1 - l_norm);
             const f = (n: number) =>
                 l_norm - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+            
             return `#${[0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, '0')).join('')}`;
         };
         
