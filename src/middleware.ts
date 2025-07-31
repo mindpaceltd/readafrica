@@ -1,16 +1,65 @@
-
-import { NextResponse, type NextRequest } from 'next/server'
-import { createMiddlewareClient } from '@/lib/supabase/middleware-client';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import type { Database } from '@/lib/database.types';
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-  const supabase = createMiddlewareClient(request, response);
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          });
+        },
+      },
+    }
+  );
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
 
   // If the user is logged in
   if (user) {
@@ -18,36 +67,32 @@ export async function middleware(request: NextRequest) {
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .single();
 
     const role = profile?.role;
 
-    // Redirect logged-in users away from public-only pages
     const publicOnlyRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
     if (publicOnlyRoutes.includes(pathname)) {
-        if (role === 'admin') {
-            return NextResponse.redirect(new URL('/admin', request.url));
-        }
-        if (role === 'publisher') {
-            return NextResponse.redirect(new URL('/publisher', request.url));
-        }
-        return NextResponse.redirect(new URL('/my-books', request.url));
+      if (role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
+      if (role === 'publisher') {
+        return NextResponse.redirect(new URL('/publisher', request.url));
+      }
+      return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
-    // Protect admin routes: if the path starts with /admin and user is not admin, redirect
     if (pathname.startsWith('/admin') && role !== 'admin') {
       return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
-    // Protect publisher routes: if path starts with /publisher, user is not a publisher (and also not an admin), redirect
     if (pathname.startsWith('/publisher') && role !== 'publisher' && role !== 'admin') {
-        return NextResponse.redirect(new URL('/my-books', request.url));
+      return NextResponse.redirect(new URL('/my-books', request.url));
     }
-
   } else {
     // Protect all sensitive routes if user is not logged in
     const protectedRoutes = ['/admin', '/publisher', '/my-books', '/cart'];
-    if (protectedRoutes.some(path => pathname.startsWith(path))) {
+    if (protectedRoutes.some((path) => pathname.startsWith(path))) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
@@ -66,4 +111,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-}
+};
