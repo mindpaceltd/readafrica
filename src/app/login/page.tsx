@@ -49,7 +49,7 @@ export default function LoginPage() {
 
     // The middleware will now handle the redirection based on the user's role.
     // We just need to refresh the page to trigger the middleware.
-    router.refresh();
+    window.location.reload();
   };
 
   return (

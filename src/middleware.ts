@@ -73,13 +73,15 @@ export async function middleware(request: NextRequest) {
     const role = profile?.role
 
     // If a logged-in user tries to access login/signup, redirect them
-    if (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/') {
+    const publicRoutes = ['/login', '/signup', '/forgot-password', '/'];
+    if (publicRoutes.includes(pathname)) {
         if (isAdmin) {
             return NextResponse.redirect(new URL('/admin', request.url))
         }
         if (role === 'publisher') {
             return NextResponse.redirect(new URL('/publisher', request.url))
         }
+        // Default to reader dashboard if they have a role but are not admin/publisher
         if (role === 'reader') {
             return NextResponse.redirect(new URL('/my-books', request.url))
         }
@@ -87,17 +89,17 @@ export async function middleware(request: NextRequest) {
 
     // Protect admin routes
     if (pathname.startsWith('/admin') && !isAdmin) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/my-books', request.url))
     }
 
     // Protect publisher routes
     if (pathname.startsWith('/publisher') && role !== 'publisher' && !isAdmin) {
-        return NextResponse.redirect(new URL('/', request.url))
+        return NextResponse.redirect(new URL('/my-books', request.url))
     }
 
-    // Protect user routes
-    if (pathname.startsWith('/my-books') && role === 'publisher') {
-         return NextResponse.redirect(new URL('/publisher', request.url))
+    // Protect user routes for other roles
+    if (pathname.startsWith('/my-books') && role !== 'reader' && !isAdmin) {
+         return NextResponse.redirect(new URL(`/${role}`, request.url))
     }
 
   } else {
