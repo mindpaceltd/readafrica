@@ -29,10 +29,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import type { Tables } from "@/lib/database.types";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
     const supabase = createClient();
     const { toast } = useToast();
+    const router = useRouter();
     const [users, setUsers] = useState<Tables<'profiles'>[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -86,7 +88,7 @@ export default function UsersPage() {
                                 </TableCell>
                                 <TableCell>{user.phone_number || 'Not provided'}</TableCell>
                                 <TableCell>
-                                    <Badge variant={user.is_admin ? 'default' : 'secondary'}>{user.is_admin ? 'Admin' : 'User'}</Badge>
+                                    <Badge variant={user.role === 'admin' ? 'default' : user.role === 'publisher' ? 'secondary' : 'outline'}>{user.role}</Badge>
                                 </TableCell>
                                 <TableCell className="font-medium">KES {user.balance.toFixed(2)}</TableCell>
                                 <TableCell>
@@ -103,7 +105,9 @@ export default function UsersPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push(`/admin/users/${user.id}`)}>
+                                            View Details
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem className="text-destructive">Suspend User</DropdownMenuItem>
                                         </DropdownMenuContent>

@@ -9,14 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
-import { UploadCloud, Loader2 } from "lucide-react";
+import { UploadCloud, Loader2, Shield, UserPlus, Trash2, Search } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/lib/database.types";
 import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Settings = Tables<'app_settings'>;
+type AdminUser = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'email'>;
+
 
 export default function SettingsPage() {
     const supabase = createClient();
@@ -26,23 +29,41 @@ export default function SettingsPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [admins, setAdmins] = useState<AdminUser[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<AdminUser[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    
+
+    const fetchSettingsAndAdmins = async () => {
+        setLoading(true);
+        const settingsPromise = supabase.from('app_settings').select('*').eq('id', 1).single();
+        const adminsPromise = supabase.from('profiles').select('id, full_name, avatar_url, email').eq('role', 'admin');
+        
+        const [{ data: settingsData, error: settingsError }, { data: adminsData, error: adminsError }] = await Promise.all([settingsPromise, adminsPromise]);
+
+        if (settingsError) {
+            toast({ title: "Error fetching settings", description: settingsError.message, variant: 'destructive' });
+        } else if (settingsData) {
+            setSettings(settingsData);
+            if (settingsData.logo_url) {
+                setLogoPreview(settingsData.logo_url);
+            }
+        }
+        
+        if(adminsError) {
+            toast({ title: "Error fetching admins", description: adminsError.message, variant: 'destructive' });
+        } else if (adminsData) {
+            // @ts-ignore
+            setAdmins(adminsData);
+        }
+
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchSettings = async () => {
-            setLoading(true);
-            const { data, error } = await supabase.from('app_settings').select('*').eq('id', 1).single();
-            if (error) {
-                toast({ title: "Error fetching settings", description: error.message, variant: 'destructive' });
-            } else if (data) {
-                setSettings(data);
-                if (data.logo_url) {
-                    setLogoPreview(data.logo_url);
-                }
-            }
-            setLoading(false);
-        };
-        fetchSettings();
-    }, [supabase, toast]);
+        fetchSettingsAndAdmins();
+    }, []);
     
 
     const handleInputChange = (field: keyof Settings, value: any) => {
@@ -88,6 +109,57 @@ export default function SettingsPage() {
             footer_text: settings.footer_text,
             logo_url: logo_url
         });
+    }
+
+    const handleSearchUsers = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!searchTerm.trim()) return;
+        setIsSearching(true);
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, email')
+            .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+            .neq('role', 'admin') // Exclude existing admins from search
+            .limit(5);
+
+        if (error) {
+            toast({ title: "Search failed", description: error.message, variant: 'destructive' });
+        } else {
+            // @ts-ignore
+            setSearchResults(data);
+        }
+        setIsSearching(false);
+    }
+
+    const handleMakeAdmin = async (user: AdminUser) => {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: 'admin' })
+            .eq('id', user.id);
+
+        if (error) {
+            toast({ title: "Failed to update role", description: error.message, variant: 'destructive' });
+        } else {
+            toast({ title: "Success!", description: `${user.full_name} is now an admin.` });
+            setAdmins([...admins, user]);
+            setSearchResults(searchResults.filter(u => u.id !== user.id));
+        }
+    }
+    
+    const handleRevokeAdmin = async (userId: string) => {
+        if (!confirm("Are you sure you want to revoke admin access for this user?")) return;
+        
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: 'reader' }) // Revert to a default role
+            .eq('id', userId);
+        
+        if (error) {
+            toast({ title: "Failed to revoke admin", description: error.message, variant: 'destructive' });
+        } else {
+            toast({ title: "Admin access revoked." });
+            setAdmins(admins.filter(a => a.id !== userId));
+        }
     }
 
   return (
@@ -214,17 +286,82 @@ export default function SettingsPage() {
                     </Card>
                 </TabsContent>
                 <TabsContent value="roles">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Admin Roles</CardTitle>
-                            <CardDescription>
-                                Manage roles and permissions for admin users. (Feature coming soon)
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">This section is under development.</p>
-                        </CardContent>
-                    </Card>
+                    <div className="grid md:grid-cols-2 gap-6 items-start">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Manage Administrators</CardTitle>
+                                <CardDescription>
+                                    Grant or revoke admin privileges for users.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <h3 className="font-semibold text-foreground mb-4">Current Admins</h3>
+                                <div className="space-y-4">
+                                    {admins.map(admin => (
+                                        <div key={admin.id} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={admin.avatar_url || undefined} />
+                                                    <AvatarFallback>{admin.full_name?.charAt(0) ?? 'A'}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-medium">{admin.full_name}</p>
+                                                    <p className="text-xs text-muted-foreground">{admin.email}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="destructive" size="sm" onClick={() => handleRevokeAdmin(admin.id)}>
+                                                <Trash2 className="mr-2 h-4 w-4"/>
+                                                Revoke
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {admins.length === 0 && <p className="text-sm text-muted-foreground">No admins found.</p>}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Add New Admin</CardTitle>
+                                <CardDescription>Search for a user to promote them to an admin role.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleSearchUsers} className="flex gap-2 mb-4">
+                                    <Input
+                                        placeholder="Search by name or email..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <Button type="submit" variant="outline" disabled={isSearching}>
+                                        {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                                    </Button>
+                                </form>
+                                <div className="space-y-4">
+                                    {isSearching && <p className="text-sm text-muted-foreground">Searching...</p>}
+                                    {!isSearching && searchResults.length === 0 && searchTerm && (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No matching users found.</p>
+                                    )}
+                                    {searchResults.map(user => (
+                                        <div key={user.id} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={user.avatar_url || undefined} />
+                                                    <AvatarFallback>{user.full_name?.charAt(0) ?? 'U'}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-medium">{user.full_name}</p>
+                                                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                </div>
+                                            </div>
+                                            <Button size="sm" onClick={() => handleMakeAdmin(user)}>
+                                                <UserPlus className="mr-2 h-4 w-4"/>
+                                                Make Admin
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </TabsContent>
             </Tabs>
         )}
