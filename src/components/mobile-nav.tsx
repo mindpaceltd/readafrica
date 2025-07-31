@@ -97,8 +97,7 @@ export function MobileNavContent({ siteTitle, logoUrl, user, isAdmin, userRole }
       </SheetHeader>
       <nav className="flex flex-col space-y-2 flex-1">
          <NavLink href="/books"><BookOpen/>Books</NavLink>
-         {user && !isAdmin && <NavLink href={getDashboardHref()}><LayoutDashboard/>Dashboard</NavLink>}
-         {isAdmin && <NavLink href="/admin"><Shield/>Admin Dashboard</NavLink>}
+         {user && <NavLink href={getDashboardHref()}>{isAdmin ? <Shield/> : <LayoutDashboard/>}Dashboard</NavLink>}
          <NavLink href="/subscriptions"><Gem />Subscriptions</NavLink>
          <NavLink href="/volunteer"><Handshake/>Volunteer</NavLink>
       </nav>

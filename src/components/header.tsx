@@ -85,16 +85,14 @@ export function Header({ siteTitle, logoUrl, user, isAdmin, userRole }: HeaderPr
                     <Link href={item.href}>{item.label}</Link>
                 </Button>
             ))}
-          {user && !isAdmin && (
-            <Button variant="ghost" className={cn("hover:text-primary", pathname.startsWith('/my-books') || pathname.startsWith('/publisher') ? 'text-primary font-semibold' : '')} asChild>
-                <Link href={getDashboardHref()}><LayoutDashboard className="mr-2"/>Dashboard</Link>
+          {user && (
+            <Button variant="ghost" className={cn("hover:text-primary", pathname.startsWith(getDashboardHref()) ? 'text-primary font-semibold' : '')} asChild>
+                <Link href={getDashboardHref()}>
+                    {isAdmin ? <Shield className="mr-2"/> : <LayoutDashboard className="mr-2"/>}
+                    Dashboard
+                </Link>
             </Button>
           )}
-           {isAdmin && (
-                <Button variant="ghost" asChild className={cn(pathname.startsWith('/admin') ? 'text-primary font-semibold' : '')}>
-                    <Link href="/admin"><Shield className="mr-2"/>Admin Dashboard</Link>
-                </Button>
-            )}
            <Button variant="secondary" asChild>
                 <Link href="/subscriptions">
                     <Gem className="mr-2" />
