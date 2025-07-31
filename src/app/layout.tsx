@@ -21,6 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: iconUrl,
     },
+    manifest: '/manifest.json',
   }
 }
 
