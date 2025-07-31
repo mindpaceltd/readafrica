@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type Role = 'reader' | 'publisher';
+type Role = 'reader' | 'publisher' | 'admin';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -47,7 +47,8 @@ export default function SignupPage() {
         emailRedirectTo: `${location.origin}/auth/callback`,
         data: {
             full_name: fullName,
-            role: selectedRole
+            role: selectedRole,
+            is_admin: selectedRole === 'admin'
         },
       },
     });
@@ -84,7 +85,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
             <div className="mx-auto bg-primary text-primary-foreground p-3 rounded-full w-fit mb-4">
                 <Shield />
@@ -100,16 +101,21 @@ export default function SignupPage() {
           <form onSubmit={handleSignupSubmit} className="space-y-4">
              <div className="space-y-2">
                 <Label>I want to join as a:</Label>
-                <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => setSelectedRole('reader')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all", selectedRole === 'reader' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <button type="button" onClick={() => setSelectedRole('reader')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all h-full", selectedRole === 'reader' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
                         <Book className="h-8 w-8 text-primary mb-2" />
                         <span className="font-semibold">Reader</span>
                         <span className="text-xs text-muted-foreground text-center">Browse and read books from our collection</span>
                     </button>
-                    <button type="button" onClick={() => setSelectedRole('publisher')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all", selectedRole === 'publisher' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
+                    <button type="button" onClick={() => setSelectedRole('publisher')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all h-full", selectedRole === 'publisher' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
                         <UploadCloud className="h-8 w-8 text-primary mb-2" />
                         <span className="font-semibold">Publisher</span>
                          <span className="text-xs text-muted-foreground text-center">Upload and manage your books for readers</span>
+                    </button>
+                    <button type="button" onClick={() => setSelectedRole('admin')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all h-full", selectedRole === 'admin' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
+                        <Shield className="h-8 w-8 text-primary mb-2" />
+                        <span className="font-semibold">Admin</span>
+                         <span className="text-xs text-muted-foreground text-center">Manage the application and all users</span>
                     </button>
                 </div>
              </div>
