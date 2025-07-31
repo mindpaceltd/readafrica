@@ -1,10 +1,9 @@
-
 // src/components/admin-sidebar.tsx
 'use client';
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock, FolderKanban } from "lucide-react";
+import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock, FolderKanban, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -15,6 +14,7 @@ const navItems = [
     { href: "/admin/books", label: "Manage Books", icon: BookMarked, subItems: [
         { href: "/admin/books/categories", label: "Book Categories", icon: FolderKanban },
     ]},
+    { href: "/admin/publishers", label: "Publishers", icon: UserCog },
     { href: "/admin/subscriptions", label: "Subscription Plans", icon: Gem },
     { href: "/admin/devotionals", label: "Devotionals", icon: MessageCircle },
     { href: "/admin/transactions", label: "Transactions", icon: ShoppingCart },
@@ -78,12 +78,16 @@ function NavLinks() {
 
     const checkActive = (href: string) => {
         if (!isMounted) return false;
+        // Exact match for parent routes like /admin and /admin/books
+        if (navItems.find(item => item.href === href && item.subItems)) {
+             return pathname === href || (pathname.startsWith(href) && pathname !== href);
+        }
         return pathname.startsWith(href) && (href !== '/admin' || pathname === '/admin');
     }
 
     const checkSubActive = (href: string) => {
         if (!isMounted) return false;
-        return pathname.startsWith(href);
+        return pathname === href;
     }
     
     return (

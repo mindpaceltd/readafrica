@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban, Copy, Award } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Star, FileText, BookLock, Circle, FolderKanban, Copy, Award, CheckCircle2, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
@@ -27,33 +27,35 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { BookForm } from "@/components/book-form";
 import { createClient } from "@/lib/supabase/client";
-import type { Tables } from "@/lib/database.types";
+import type { Tables, TablesUpdate } from "@/lib/database.types";
 import { useToast } from "@/hooks/use-toast";
 import { duplicateBook } from "@/app/actions";
+import { cn } from "@/lib/utils";
 
-type BookWithCategory = Tables<'books'> & {
+type BookWithCategoryAndPublisher = Tables<'books'> & {
   categories: { name: string } | null;
+  profiles: { full_name: string | null } | null;
 };
 
 export default function ManageBooksPage() {
   const { toast } = useToast();
   const supabase = createClient();
-  const [books, setBooks] = useState<BookWithCategory[]>([]);
+  const [books, setBooks] = useState<BookWithCategoryAndPublisher[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<BookWithCategory | null>(null);
+  const [selectedBook, setSelectedBook] = useState<BookWithCategoryAndPublisher | null>(null);
 
   const fetchBooks = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('books')
-      .select('*, categories(name)')
+      .select('*, categories(name), profiles(full_name)')
       .order('created_at', { ascending: false });
 
     if (error) {
       toast({ title: "Error fetching books", description: error.message, variant: "destructive" });
     } else if (data) {
-      setBooks(data as BookWithCategory[]);
+      setBooks(data as BookWithCategoryAndPublisher[]);
     }
     setLoading(false);
   };
@@ -62,7 +64,7 @@ export default function ManageBooksPage() {
     fetchBooks();
   }, []);
 
-  const handleEdit = (book: BookWithCategory) => {
+  const handleEdit = (book: BookWithCategoryAndPublisher) => {
     setSelectedBook(book);
     setIsFormOpen(true);
   };
@@ -102,12 +104,26 @@ export default function ManageBooksPage() {
     }
   }
 
+  const handleStatusChange = async (book: BookWithCategoryAndPublisher, newStatus: 'published' | 'draft') => {
+      const { error } = await supabase
+        .from('books')
+        .update({ status: newStatus })
+        .eq('id', book.id);
+    
+     if (error) {
+      toast({ title: "Error updating status", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Book status updated" });
+      fetchBooks();
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
             <h1 className="text-3xl font-headline text-primary">Manage Books</h1>
-            <p className="text-muted-foreground">Add, edit, and manage your e-books.</p>
+            <p className="text-muted-foreground">Add, edit, approve and manage all e-books in the system.</p>
         </div>
         <Button onClick={handleAdd}>
           <PlusCircle className="mr-2" /> Add Book
@@ -122,7 +138,7 @@ export default function ManageBooksPage() {
                   <span className="sr-only">Image</span>
                 </TableHead>
                 <TableHead>Title</TableHead>
-                <TableHead>Author</TableHead>
+                <TableHead>Publisher</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Attributes</TableHead>
                 <TableHead>Price</TableHead>
@@ -149,12 +165,25 @@ export default function ManageBooksPage() {
                   <TableCell className="font-medium">
                     {book.title}
                   </TableCell>
-                  <TableCell>{book.author}</TableCell>
+                  <TableCell>{book.profiles?.full_name || 'N/A'}</TableCell>
                    <TableCell>
-                      <Badge variant={book.status === 'published' ? 'default' : 'secondary'} className={book.status === 'published' ? 'bg-green-600' : ''}>
-                          <Circle className={`mr-1 h-2 w-2 ${book.status === 'published' ? 'fill-white' : 'fill-current'}`} />
-                          {book.status === 'published' ? 'Published' : 'Draft'}
-                      </Badge>
+                      <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                            <Badge variant={book.status === 'published' ? 'default' : 'secondary'} className={cn("cursor-pointer", book.status === 'published' ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600')}>
+                                <Circle className={`mr-1 h-2 w-2 ${book.status === 'published' ? 'fill-white' : 'fill-current'}`} />
+                                {book.status === 'published' ? 'Published' : 'Draft'}
+                            </Badge>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent>
+                           <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                           <DropdownMenuItem onClick={() => handleStatusChange(book, 'published')} disabled={book.status === 'published'}>
+                             <CheckCircle2 className="mr-2 text-green-600" /> Publish
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleStatusChange(book, 'draft')} disabled={book.status === 'draft'}>
+                             <Edit className="mr-2" /> Move to Drafts
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
+                      </DropdownMenu>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-2">
