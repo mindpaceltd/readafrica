@@ -47,8 +47,7 @@ export default function SignupPage() {
         emailRedirectTo: `${location.origin}/auth/callback`,
         data: {
             full_name: fullName,
-            role: selectedRole,
-            is_admin: selectedRole === 'admin'
+            role: selectedRole
         },
       },
     });

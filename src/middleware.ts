@@ -16,17 +16,16 @@ export async function middleware(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_admin, role')
+      .select('role')
       .eq('id', user.id)
       .single()
 
-    const isAdmin = profile?.is_admin || false;
     const role = profile?.role;
 
     // Redirect logged-in users away from public-only pages
     const publicOnlyRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
     if (publicOnlyRoutes.includes(pathname)) {
-        if (isAdmin) {
+        if (role === 'admin') {
             return NextResponse.redirect(new URL('/admin', request.url));
         }
         if (role === 'publisher') {
@@ -36,12 +35,12 @@ export async function middleware(request: NextRequest) {
     }
 
     // Protect admin routes: if the path starts with /admin and user is not admin, redirect
-    if (pathname.startsWith('/admin') && !isAdmin) {
+    if (pathname.startsWith('/admin') && role !== 'admin') {
       return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
     // Protect publisher routes: if path starts with /publisher, user is not a publisher (and also not an admin), redirect
-    if (pathname.startsWith('/publisher') && role !== 'publisher' && !isAdmin) {
+    if (pathname.startsWith('/publisher') && role !== 'publisher' && role !== 'admin') {
         return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
