@@ -47,36 +47,9 @@ export default function LoginPage() {
         className: 'bg-green-600 border-green-600 text-white',
     });
 
-    try {
-      // Immediately fetch profile to get the role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin, role')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (profileError || !profile) {
-        console.error("Error fetching profile, redirecting to default.", profileError);
-        toast({ title: "Could not fetch profile", description: "Redirecting to your dashboard.", variant: "destructive"})
-        router.push('/my-books');
-        return;
-      }
-      
-      // Use router.push for client-side navigation
-      if (profile.is_admin) {
-        router.push('/admin');
-      } else if (profile.role === 'publisher') {
-        router.push('/publisher');
-      } else {
-        router.push('/my-books');
-      }
-      router.refresh();
-
-    } catch (err) {
-      console.error("Error during redirection logic:", err);
-      toast({ title: "Redirection Error", description: "Could not determine dashboard, redirecting to default.", variant: "destructive"})
-      router.push('/my-books');
-    }
+    // The middleware will now handle the redirection based on the user's role.
+    // We just need to refresh the page to trigger the middleware.
+    router.refresh();
   };
 
   return (

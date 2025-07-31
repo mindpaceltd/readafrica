@@ -1,11 +1,59 @@
 
-import { type NextRequest } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import { type NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  // This will refresh the user's session cookie and handle redirections
-  // if the user is not authenticated.
-  return await updateSession(request)
+  const { supabase, response } = createClient(request)
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { pathname } = request.nextUrl
+
+  // If user is logged in
+  if (user && session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin, role')
+      .eq('id', user.id)
+      .single()
+
+    const isAdmin = profile?.is_admin || false
+    const role = profile?.role
+
+    // Redirect logged-in users away from auth pages
+    if (['/login', '/signup', '/forgot-password'].includes(pathname)) {
+        let redirectUrl = '/my-books';
+        if (isAdmin) redirectUrl = '/admin';
+        else if (role === 'publisher') redirectUrl = '/publisher/books';
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
+    }
+
+    // Protect admin routes
+    if (pathname.startsWith('/admin') && !isAdmin) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+    
+    // Protect publisher routes
+    if (pathname.startsWith('/publisher') && role !== 'publisher' && !isAdmin) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+  } else {
+    // Protect routes that require authentication
+    const protectedRoutes = ['/admin', '/publisher', '/my-books', '/cart']
+    if (protectedRoutes.some(path => pathname.startsWith(path))) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+
+
+  return response
 }
 
 export const config = {
