@@ -1,9 +1,9 @@
 // src/lib/supabase/middleware-client.ts
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import type { Database } from '../database.types';
 
-export function createMiddlewareClient(request: NextRequest, response: { cookies: { set: (name: string, value: string, options: CookieOptions) => void }}) {
+export function createMiddlewareClient(request: NextRequest, response: NextResponse) {
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
