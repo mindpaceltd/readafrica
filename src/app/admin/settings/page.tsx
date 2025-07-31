@@ -1,4 +1,3 @@
-
 // src/app/admin/settings/page.tsx
 'use client'
 
@@ -18,7 +17,7 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Settings = Tables<'app_settings'>;
-type AdminUser = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'email'>;
+type AdminUser = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
 
 
 export default function SettingsPage() {
@@ -38,7 +37,7 @@ export default function SettingsPage() {
     const fetchSettingsAndAdmins = async () => {
         setLoading(true);
         const settingsPromise = supabase.from('app_settings').select('*').eq('id', 1).single();
-        const adminsPromise = supabase.from('profiles').select('id, full_name, avatar_url, email').eq('role', 'admin');
+        const adminsPromise = supabase.from('profiles').select('id, full_name, avatar_url').eq('role', 'admin');
         
         const [{ data: settingsData, error: settingsError }, { data: adminsData, error: adminsError }] = await Promise.all([settingsPromise, adminsPromise]);
 
@@ -54,7 +53,6 @@ export default function SettingsPage() {
         if(adminsError) {
             toast({ title: "Error fetching admins", description: adminsError.message, variant: 'destructive' });
         } else if (adminsData) {
-            // @ts-ignore
             setAdmins(adminsData);
         }
 
@@ -117,7 +115,7 @@ export default function SettingsPage() {
         setIsSearching(true);
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, full_name, avatar_url, email')
+            .select('id, full_name, avatar_url')
             .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
             .neq('role', 'admin') // Exclude existing admins from search
             .limit(5);
@@ -125,7 +123,6 @@ export default function SettingsPage() {
         if (error) {
             toast({ title: "Search failed", description: error.message, variant: 'destructive' });
         } else {
-            // @ts-ignore
             setSearchResults(data);
         }
         setIsSearching(false);
@@ -306,7 +303,7 @@ export default function SettingsPage() {
                                                 </Avatar>
                                                 <div>
                                                     <p className="font-medium">{admin.full_name}</p>
-                                                    <p className="text-xs text-muted-foreground">{admin.email}</p>
+                                                    <p className="text-xs text-muted-foreground">{admin.id}</p>
                                                 </div>
                                             </div>
                                             <Button variant="destructive" size="sm" onClick={() => handleRevokeAdmin(admin.id)}>
@@ -349,7 +346,7 @@ export default function SettingsPage() {
                                                 </Avatar>
                                                 <div>
                                                     <p className="font-medium">{user.full_name}</p>
-                                                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                    <p className="text-xs text-muted-foreground">{user.id}</p>
                                                 </div>
                                             </div>
                                             <Button size="sm" onClick={() => handleMakeAdmin(user)}>

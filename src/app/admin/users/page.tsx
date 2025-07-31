@@ -82,7 +82,7 @@ export default function UsersPage() {
                                         </Avatar>
                                         <div className="grid gap-0.5">
                                             <p className="font-medium">{user.full_name || 'N/A'}</p>
-                                            <p className="text-xs text-muted-foreground">User ID: {user.id}</p>
+                                            <p className="text-xs text-muted-foreground">ID: {user.id}</p>
                                         </div>
                                     </div>
                                 </TableCell>

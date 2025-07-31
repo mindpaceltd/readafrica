@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Tables } from "@/lib/database.types";
 
-type UserProfile = Tables<'profiles'>;
+type UserProfile = Tables<'profiles'> & { user_email: string | null };
 type Transaction = Tables<'transactions'> & { books: Pick<Tables<'books'>, 'title'> | null };
 type UserBook = { books: Pick<Tables<'books'>, 'id' | 'title' | 'thumbnail_url'> };
 
@@ -32,9 +32,15 @@ async function getUserDetails(userId: string) {
     if (profileError || !profile) {
         notFound();
     }
+    
+    // Admin-only call to get user email
+    const { data: { user } } = await supabase.auth.admin.getUserById(userId);
 
     return { 
-        profile: profile as UserProfile, 
+        profile: {
+            ...profile,
+            user_email: user?.email || null
+        } as UserProfile, 
         transactions: transactions as Transaction[], 
         purchasedBooks: (books as UserBook[]).map(ub => ub.books) 
     };
@@ -78,8 +84,7 @@ export default async function UserDetailsPage({ params }: { params: { id: string
                             </div>
                              <div className="flex items-center gap-2 text-muted-foreground">
                                 <Mail className="h-4 w-4" />
-                                {/* @ts-ignore */}
-                                <span>{profile.email || 'No email provided'}</span>
+                                <span>{profile.user_email || 'No email provided'}</span>
                             </div>
                              <div className="flex items-center gap-2 text-muted-foreground">
                                 <Phone className="h-4 w-4" />
