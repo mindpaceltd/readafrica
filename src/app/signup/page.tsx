@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type Role = 'reader' | 'publisher' | 'admin';
+type Role = 'reader' | 'publisher';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -100,7 +100,7 @@ export default function SignupPage() {
           <form onSubmit={handleSignupSubmit} className="space-y-4">
              <div className="space-y-2">
                 <Label>I want to join as a:</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <button type="button" onClick={() => setSelectedRole('reader')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all h-full", selectedRole === 'reader' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
                         <Book className="h-8 w-8 text-primary mb-2" />
                         <span className="font-semibold">Reader</span>
@@ -110,11 +110,6 @@ export default function SignupPage() {
                         <UploadCloud className="h-8 w-8 text-primary mb-2" />
                         <span className="font-semibold">Publisher</span>
                          <span className="text-xs text-muted-foreground text-center">Upload and manage your books for readers</span>
-                    </button>
-                    <button type="button" onClick={() => setSelectedRole('admin')} className={cn("flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all h-full", selectedRole === 'admin' ? 'border-primary bg-primary/10' : 'hover:bg-muted')}>
-                        <Shield className="h-8 w-8 text-primary mb-2" />
-                        <span className="font-semibold">Admin</span>
-                         <span className="text-xs text-muted-foreground text-center">Manage the application and all users</span>
                     </button>
                 </div>
              </div>
