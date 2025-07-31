@@ -1,6 +1,6 @@
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -73,8 +73,8 @@ export async function middleware(request: NextRequest) {
     const role = profile?.role
 
     // If a logged-in user tries to access login/signup, redirect them
-    const publicRoutes = ['/login', '/signup', '/forgot-password', '/'];
-    if (publicRoutes.includes(pathname)) {
+    const publicOnlyRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
+    if (publicOnlyRoutes.includes(pathname)) {
         if (isAdmin) {
             return NextResponse.redirect(new URL('/admin', request.url))
         }
@@ -95,11 +95,6 @@ export async function middleware(request: NextRequest) {
     // Protect publisher routes
     if (pathname.startsWith('/publisher') && role !== 'publisher' && !isAdmin) {
         return NextResponse.redirect(new URL('/my-books', request.url))
-    }
-
-    // Protect user routes for other roles
-    if (pathname.startsWith('/my-books') && role !== 'reader' && !isAdmin) {
-         return NextResponse.redirect(new URL(`/${role}`, request.url))
     }
 
   } else {
