@@ -58,23 +58,24 @@ export default function LoginPage() {
       if (profileError || !profile) {
         console.error("Error fetching profile, redirecting to default.", profileError);
         toast({ title: "Could not fetch profile", description: "Redirecting to your dashboard.", variant: "destructive"})
-        window.location.href = '/my-books';
+        router.push('/my-books');
         return;
       }
       
-      // Full-page reload for dashboard redirection
+      // Use router.push for client-side navigation
       if (profile.is_admin) {
-        window.location.href = '/admin';
+        router.push('/admin');
       } else if (profile.role === 'publisher') {
-        window.location.href = '/publisher';
+        router.push('/publisher');
       } else {
-        window.location.href = '/my-books';
+        router.push('/my-books');
       }
+      router.refresh();
 
     } catch (err) {
       console.error("Error during redirection logic:", err);
       toast({ title: "Redirection Error", description: "Could not determine dashboard, redirecting to default.", variant: "destructive"})
-      window.location.href = '/my-books';
+      router.push('/my-books');
     }
   };
 
