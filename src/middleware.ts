@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Role-based route protection
+  // If the user is logged in
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -20,44 +20,40 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    const isAdmin = profile?.is_admin || false
-    const role = profile?.role
+    const isAdmin = profile?.is_admin || false;
+    const role = profile?.role;
 
-    // If a logged-in user tries to access login/signup, redirect them
+    // Redirect logged-in users away from public-only pages
     const publicOnlyRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
     if (publicOnlyRoutes.includes(pathname)) {
         if (isAdmin) {
-            return NextResponse.redirect(new URL('/admin', request.url))
+            return NextResponse.redirect(new URL('/admin', request.url));
         }
         if (role === 'publisher') {
-            return NextResponse.redirect(new URL('/publisher', request.url))
+            return NextResponse.redirect(new URL('/publisher', request.url));
         }
-        // Default to reader dashboard if they have a role but are not admin/publisher
-        if (role === 'reader') {
-            return NextResponse.redirect(new URL('/my-books', request.url))
-        }
+        return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
-    // Protect admin routes
+    // Protect admin routes: if the path starts with /admin and user is not admin, redirect
     if (pathname.startsWith('/admin') && !isAdmin) {
-      return NextResponse.redirect(new URL('/my-books', request.url))
+      return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
-    // Protect publisher routes
+    // Protect publisher routes: if path starts with /publisher, user is not a publisher (and also not an admin), redirect
     if (pathname.startsWith('/publisher') && role !== 'publisher' && !isAdmin) {
-        return NextResponse.redirect(new URL('/my-books', request.url))
+        return NextResponse.redirect(new URL('/my-books', request.url));
     }
 
   } else {
     // Protect all sensitive routes if user is not logged in
-    const protectedRoutes = ['/admin', '/publisher', '/my-books', '/cart']
+    const protectedRoutes = ['/admin', '/publisher', '/my-books', '/cart'];
     if (protectedRoutes.some(path => pathname.startsWith(path))) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
-
-  return response
+  return response;
 }
 
 export const config = {
