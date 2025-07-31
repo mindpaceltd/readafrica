@@ -4,10 +4,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock, FolderKanban } from "lucide-react";
+import { BookMarked, LayoutDashboard, MessageCircle, Settings, ShoppingCart, Users, BookHeart, Menu, Bell, Gem, FileClock, FolderKanban, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { useState, useEffect } from "react";
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
     { href: "/admin/books", label: "Manage Books", icon: BookMarked, subItems: [
         { href: "/admin/books/categories", label: "Book Categories", icon: FolderKanban },
     ]},
+    { href: "/admin/publishers", label: "Publishers", icon: UserCog },
     { href: "/admin/subscriptions", label: "Subscription Plans", icon: Gem },
     { href: "/admin/devotionals", label: "Devotionals", icon: MessageCircle },
     { href: "/admin/transactions", label: "Transactions", icon: ShoppingCart },
@@ -48,14 +49,18 @@ export function AdminSidebar() {
                     </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col">
-                        <nav className="grid gap-2 text-lg font-medium">
-                            <Link
+                        <SheetHeader>
+                           <SheetTitle>
+                             <Link
                                 href="/"
                                 className="flex items-center gap-2 text-lg font-semibold mb-4"
                                 >
                                 <BookHeart className="h-6 w-6 text-primary" />
                                 <span>africanreads</span>
                             </Link>
+                           </SheetTitle>
+                        </SheetHeader>
+                        <nav className="grid gap-2 text-lg font-medium mt-4">
                             <NavLinks />
                         </nav>
                     </SheetContent>
@@ -78,12 +83,16 @@ function NavLinks() {
 
     const checkActive = (href: string) => {
         if (!isMounted) return false;
+        // Exact match for parent routes like /admin and /admin/books
+        if (navItems.find(item => item.href === href && item.subItems)) {
+             return pathname === href || (pathname.startsWith(href) && pathname !== href);
+        }
         return pathname.startsWith(href) && (href !== '/admin' || pathname === '/admin');
     }
 
     const checkSubActive = (href: string) => {
         if (!isMounted) return false;
-        return pathname.startsWith(href);
+        return pathname === href;
     }
     
     return (

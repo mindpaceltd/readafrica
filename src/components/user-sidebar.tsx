@@ -1,3 +1,4 @@
+
 // src/components/user-sidebar.tsx
 'use client';
 
@@ -6,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { BookMarked, LayoutDashboard, History, Bell, User, LogOut, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { useEffect, useState } from "react";
 
 const navItems = [
@@ -67,8 +68,10 @@ export function UserSidebar() {
                     </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col">
-                        <nav className="grid gap-2 text-lg font-medium">
-                            <h2 className="text-lg font-semibold px-3 py-2">My Account</h2>
+                        <SheetHeader>
+                            <SheetTitle className="text-left text-lg font-semibold">My Account</SheetTitle>
+                        </SheetHeader>
+                        <nav className="grid gap-2 text-lg font-medium mt-4">
                             {navItems.map((item) => (
                                 <Link
                                     key={item.href}
